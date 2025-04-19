@@ -14,7 +14,7 @@ int main(int argc, char* argv[]){
 
     //2. Tạo cửa sổ game
     SDL_Window* window = SDL_CreateWindow(
-        "Code Invaders - Space Shooter",
+        "Asteroid Drift",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN
     );
@@ -37,23 +37,21 @@ int main(int argc, char* argv[]){
     bool isRunning = true;
     SDL_Event event;
     while(isRunning){
-        //4.1 Xử lý sự kiện (bấm nút X để thoát)
+        // Xử lý sự kiện (bấm nút X để thoát)
         while(SDL_PollEvent(&event)){
             if(event.type == SDL_QUIT){
                 isRunning = 0;
             }
         }
 
-        //4.2 Làm sạch renderer với màu đen
+        // Làm sạch renderer với màu đen
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // R,G,B,A = 0,0,0,255 = đen
         SDL_RenderClear(renderer);
 
-        //4.3 Sau này sẽ vẽ ở đây
-        //4.4 Hiển thị nội dung renderer ra màn hình
-        SDL_RenderPresent(renderer);
+        // Sau này sẽ vẽ ở đây
 
-        //4.5 Giới hạn FPS (tạm thời sleep 16ms ~ 60FPS)
-        SDL_Delay(16);
+        // Hiển thị nội dung renderer ra màn hình
+        SDL_RenderPresent(renderer);
     }
 
     //5. Giải phòng tài nguyên
