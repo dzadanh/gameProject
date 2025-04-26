@@ -1,5 +1,6 @@
 # depslib dependency file v1.0
-1744473636 source:c:\users\admin\onedrive\desktop\gameproject\main.cpp
-	<iostream>
+1745576175 source:c:\users\admin\onedrive\desktop\gameproject\main.cpp
 	<SDL.h>
+	<SDL_image.h>
+	<iostream>
 
