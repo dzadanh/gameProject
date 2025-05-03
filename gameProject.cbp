@@ -35,6 +35,8 @@
 		<Unit filename="Game.cpp" />
 		<Unit filename="Game.h" />
 		<Unit filename="Player.cpp" />
+		<Unit filename="Star.cpp" />
+		<Unit filename="Star.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="player.h" />
 		<Extensions>

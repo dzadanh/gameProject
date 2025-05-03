@@ -1,9 +1,13 @@
 #include "game.h"
 #include "player.h"
+#include "star.h"
 #include <bits/stdc++.h>
 using namespace std;
 
 Player* player = nullptr;
+
+vector<Star*> stars;
+int score = 0;
 
 bool Game::init(const char* title, int width, int height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -30,6 +34,11 @@ bool Game::init(const char* title, int width, int height) {
 
     player = new Player(renderer);
 
+    for (int i = 0; i < 5; ++i) {
+        stars.push_back(new Star(renderer));
+    }
+
+
     isRunning = true;
     return true;
 }
@@ -48,6 +57,25 @@ void Game::handleEvents() {
 void Game::update() {
     // Tạm thời chưa có gì
     player->update();
+
+    for (auto star : stars) {
+        star->update();
+
+        // Kiểm tra va chạm
+        SDL_Rect playerRect = player->getRect();
+        SDL_Rect starRect = star->getRect();
+        if (SDL_HasIntersection(&playerRect, &starRect)) {
+            score++;
+            star->reset();
+        }
+
+
+        // Nếu sao rơi quá màn thì reset
+        if (star->isOffScreen()) {
+            star->reset();
+        }
+    }
+
 }
 
 void Game::render() {
@@ -55,6 +83,11 @@ void Game::render() {
     SDL_RenderClear(renderer);
 
     player->render();
+
+    for (auto star : stars) {
+        star->render();
+    }
+
 
     // Tạm thời chưa có gì để vẽ
 
@@ -67,6 +100,11 @@ void Game::clean() {
     IMG_Quit();
     SDL_Quit();
     delete player;
+
+    for (auto star : stars){
+        delete star;
+    }
+    stars.clear();
 }
 
 bool Game::running() {
