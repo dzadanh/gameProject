@@ -5,9 +5,11 @@
 using namespace std;
 
 Player* player = nullptr;
-
 vector<Star*> stars;
 int score = 0;
+
+Uint32 lastStarResetTime = 0;
+const Uint32 STAR_RESET_INTERVAL = 5000; // 5 giây
 
 bool Game::init(const char* title, int width, int height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -34,10 +36,9 @@ bool Game::init(const char* title, int width, int height) {
 
     player = new Player(renderer);
 
-    for (int i = 0; i < 5; ++i) {
-        stars.push_back(new Star(renderer));
-    }
-
+    // Tạo một ngôi sao duy nhất
+    stars.push_back(new Star(renderer));
+    lastStarResetTime = SDL_GetTicks();
 
     isRunning = true;
     return true;
@@ -55,27 +56,35 @@ void Game::handleEvents() {
 }
 
 void Game::update() {
-    // Tạm thời chưa có gì
+    Uint32 currentTime = SDL_GetTicks();
+
+    // Reset sao sau mỗi 3 giây
+    if (currentTime - lastStarResetTime >= STAR_RESET_INTERVAL) {
+        if (!stars.empty()) {
+            stars[0]->reset();
+            lastStarResetTime = currentTime;
+        }
+    }
+
     player->update();
 
     for (auto star : stars) {
         star->update();
 
-        // Kiểm tra va chạm
         SDL_Rect playerRect = player->getRect();
         SDL_Rect starRect = star->getRect();
         if (SDL_HasIntersection(&playerRect, &starRect)) {
             score++;
             star->reset();
+            lastStarResetTime = currentTime; // reset lại thời gian đếm 3s tiếp theo
         }
 
-
-        // Nếu sao rơi quá màn thì reset
         if (star->isOffScreen()) {
-            star->reset();
+            // Nếu rơi quá màn hình thì không reset ngay — để giữ thời gian cách nhau 3s
+            // hoặc có thể reset để cho rơi lại ngay:
+            // star->reset();
         }
     }
-
 }
 
 void Game::render() {
@@ -88,9 +97,6 @@ void Game::render() {
         star->render();
     }
 
-
-    // Tạm thời chưa có gì để vẽ
-
     SDL_RenderPresent(renderer);
 }
 
@@ -101,7 +107,7 @@ void Game::clean() {
     SDL_Quit();
     delete player;
 
-    for (auto star : stars){
+    for (auto star : stars) {
         delete star;
     }
     stars.clear();
