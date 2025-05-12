@@ -2,7 +2,7 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-Star::Star(SDL_Renderer* renderer) : renderer(renderer), texture(nullptr), speed(3) {
+Star::Star(SDL_Renderer* renderer) : renderer(renderer), texture(nullptr), speed(2.5) {
     SDL_Surface* surface = IMG_Load("assets/star.png");
     if (!surface) {
         SDL_Log("Không thể load ảnh star: %s", IMG_GetError());
@@ -13,8 +13,8 @@ Star::Star(SDL_Renderer* renderer) : renderer(renderer), texture(nullptr), speed
 
     srand(time(nullptr)); // Khởi tạo random
 
-    rect.w = 32;
-    rect.h = 32;
+    rect.w = 20;
+    rect.h = 20;
     rect.x = rand() % (800 - rect.w);
     rect.y = -(rand() % 600); // Rơi ngẫu nhiên từ ngoài màn hình
 }

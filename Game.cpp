@@ -1,6 +1,7 @@
 #include "game.h"
 #include "player.h"
 #include "star.h"
+#include "enemy.h"
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -10,6 +11,8 @@ int score = 0;
 
 Uint32 lastStarResetTime = 0;
 const Uint32 STAR_RESET_INTERVAL = 5000; // 5 giây
+
+Enemy* enemy = nullptr;
 
 bool Game::init(const char* title, int width, int height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -39,6 +42,8 @@ bool Game::init(const char* title, int width, int height) {
     // Tạo một ngôi sao duy nhất
     stars.push_back(new Star(renderer));
     lastStarResetTime = SDL_GetTicks();
+
+    enemy = new Enemy(renderer);
 
     isRunning = true;
     return true;
@@ -85,6 +90,9 @@ void Game::update() {
             // star->reset();
         }
     }
+
+    enemy->update();
+
 }
 
 void Game::render() {
@@ -96,6 +104,9 @@ void Game::render() {
     for (auto star : stars) {
         star->render();
     }
+
+    enemy->render();
+
 
     SDL_RenderPresent(renderer);
 }
@@ -111,6 +122,9 @@ void Game::clean() {
         delete star;
     }
     stars.clear();
+
+    delete enemy;
+
 }
 
 bool Game::running() {

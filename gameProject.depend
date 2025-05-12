@@ -3,10 +3,11 @@
 	"game.h"
 	<bits/stdc++.h>
 
-1746679862 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
+1747043101 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
 	"game.h"
 	"player.h"
 	"star.h"
+	"enemy.h"
 	<bits/stdc++.h>
 
 1746024772 c:\users\admin\onedrive\desktop\gameproject\game.h
@@ -19,15 +20,23 @@
 	<SDL_image.h>
 	<bits/stdc++.h>
 
-1746677414 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
+1747043312 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
 	"player.h"
 	<bits/stdc++.h>
 
-1746677494 source:c:\users\admin\onedrive\desktop\gameproject\star.cpp
+1747043296 source:c:\users\admin\onedrive\desktop\gameproject\star.cpp
 	"star.h"
 	<bits/stdc++.h>
 
 1746285119 c:\users\admin\onedrive\desktop\gameproject\star.h
 	<SDL.h>
 	<SDL_image.h>
+
+1746974488 c:\users\admin\onedrive\desktop\gameproject\enemy.h
+	<SDL.h>
+	<SDL_image.h>
+
+1747043208 source:c:\users\admin\onedrive\desktop\gameproject\enemy.cpp
+	"enemy.h"
+	<iostream>
 
