@@ -3,15 +3,20 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
+#include <vector>
+class RoundBullet;
 
 class Enemy {
 public:
     Enemy(SDL_Renderer* renderer);
     ~Enemy();
 
-    void update();            // Cập nhật vị trí
-    void render();            // Vẽ enemy
-    SDL_Rect getRect();       // Trả về hình chữ nhật va chạm
+    void update();
+    void render();
+    void shootSpiralBullets(std::vector<RoundBullet*>& bullets);
+    void shootSpreadBullets(std::vector<RoundBullet*>& bullets);
+    bool hasStoppedMoving();
+    SDL_Rect getRect();
 
 private:
     SDL_Renderer* renderer;

@@ -1,5 +1,6 @@
 #include "enemy.h"
-#include <iostream>
+#include "round_bullet.h"
+#include <bits/stdc++.h>
 using namespace std;
 
 Enemy::Enemy(SDL_Renderer* renderer)
@@ -38,6 +39,44 @@ void Enemy::render() {
     SDL_RenderCopy(renderer, texture, nullptr, &rect);
 }
 
+// Spiral shots
+void Enemy::shootSpiralBullets(vector<RoundBullet*>& bullets) {
+    float cx = rect.x + rect.w / 2.0f;
+    float cy = rect.y + rect.h / 2.0f;
+    static float spiralAngle = 0;
+
+    const int bulletCount = 30;
+    const float speed = 1.4f;
+
+    for (int i = 0; i < bulletCount; i++) {
+        float angle = spiralAngle + (2 * M_PI / bulletCount) * i;
+        bullets.push_back(new RoundBullet(renderer, cx, cy, angle, speed));
+    }
+
+    spiralAngle += 0.1f;  // xoay dần từng đợt
+}
+
+// Spread shots
+void Enemy::shootSpreadBullets(std::vector<RoundBullet*>& bullets) {
+    float cx = rect.x + rect.w / 2.0f;
+    float cy = rect.y + rect.h;
+
+    const int bulletCount = 20;
+    const float spreadAngle = M_PI;  // góc 180 độ
+    const float startAngle = M_PI / 2 - spreadAngle / 2;
+    const float speed = 1.4f;
+
+    for (int i = 0; i < bulletCount; i++) {
+        float angle = startAngle + i * (spreadAngle / (bulletCount - 1));
+        bullets.push_back(new RoundBullet(renderer, cx, cy, angle, speed));
+    }
+}
+
+
 SDL_Rect Enemy::getRect() {
     return rect;
+}
+
+bool Enemy::hasStoppedMoving() {
+    return hasStopped;
 }

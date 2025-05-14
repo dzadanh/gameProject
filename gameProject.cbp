@@ -41,6 +41,8 @@
 		<Unit filename="enemy.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="player.h" />
+		<Unit filename="round_bullet.cpp" />
+		<Unit filename="round_bullet.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

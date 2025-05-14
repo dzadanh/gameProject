@@ -3,11 +3,12 @@
 	"game.h"
 	<bits/stdc++.h>
 
-1747043101 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
+1747198703 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
 	"game.h"
 	"player.h"
 	"star.h"
 	"enemy.h"
+	"round_bullet.h"
 	<bits/stdc++.h>
 
 1746024772 c:\users\admin\onedrive\desktop\gameproject\game.h
@@ -20,7 +21,7 @@
 	<SDL_image.h>
 	<bits/stdc++.h>
 
-1747043312 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
+1747196563 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
 	"player.h"
 	<bits/stdc++.h>
 
@@ -32,11 +33,22 @@
 	<SDL.h>
 	<SDL_image.h>
 
-1746974488 c:\users\admin\onedrive\desktop\gameproject\enemy.h
+1747195863 c:\users\admin\onedrive\desktop\gameproject\enemy.h
 	<SDL.h>
 	<SDL_image.h>
+	<vector>
 
-1747043208 source:c:\users\admin\onedrive\desktop\gameproject\enemy.cpp
+1747197924 source:c:\users\admin\onedrive\desktop\gameproject\enemy.cpp
 	"enemy.h"
+	"round_bullet.h"
+	<bits/stdc++.h>
+
+1747198781 source:c:\users\admin\onedrive\desktop\gameproject\round_bullet.cpp
+	"round_bullet.h"
 	<iostream>
+
+1747198539 c:\users\admin\onedrive\desktop\gameproject\round_bullet.h
+	<SDL.h>
+	<SDL_image.h>
+	<cmath>
 

@@ -2,7 +2,7 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-Player::Player(SDL_Renderer* renderer) : renderer(renderer), texture(nullptr), speed(3){
+Player::Player(SDL_Renderer* renderer) : renderer(renderer), texture(nullptr), speed(2.5){
     SDL_Surface* surface = IMG_Load("assets/player1.png");
     if(!surface){
         cout<<"không load được ảnh player!"<<IMG_GetError()<<"\n";
@@ -11,8 +11,8 @@ Player::Player(SDL_Renderer* renderer) : renderer(renderer), texture(nullptr), s
         texture = SDL_CreateTextureFromSurface(renderer, surface);
         SDL_FreeSurface(surface);
     }
-    rect.w = 50;
-    rect.h = 50;
+    rect.w = 40;
+    rect.h = 40;
     rect.x = 368;// Giữa màn hình 800x600
     rect.y = 500;
 }

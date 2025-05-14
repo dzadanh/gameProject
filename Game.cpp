@@ -2,6 +2,7 @@
 #include "player.h"
 #include "star.h"
 #include "enemy.h"
+#include "round_bullet.h"
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -13,6 +14,10 @@ Uint32 lastStarResetTime = 0;
 const Uint32 STAR_RESET_INTERVAL = 5000; // 5 giây
 
 Enemy* enemy = nullptr;
+vector<RoundBullet*> roundBullets;
+
+Uint32 lastEnemyShootTime = 0;
+const Uint32 ENEMY_SHOOT_INTERVAL = 1000; // 3 giây bắn 1 lần
 
 bool Game::init(const char* title, int width, int height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -44,6 +49,8 @@ bool Game::init(const char* title, int width, int height) {
     lastStarResetTime = SDL_GetTicks();
 
     enemy = new Enemy(renderer);
+
+    RoundBullet::loadTexture(renderer);
 
     isRunning = true;
     return true;
@@ -93,6 +100,43 @@ void Game::update() {
 
     enemy->update();
 
+    // Bắn đạn mỗi 3 giây
+    if (enemy->hasStoppedMoving() && currentTime - lastEnemyShootTime >= ENEMY_SHOOT_INTERVAL) {
+        int shootType = rand() % 2;
+        if (shootType == 0) {
+            enemy->shootSpiralBullets(roundBullets);
+        } else {
+            enemy->shootSpreadBullets(roundBullets);
+        }
+
+        lastEnemyShootTime = currentTime;
+    }
+
+
+    // Cập nhật đạn
+    for (auto bullet : roundBullets) {
+        bullet->update();
+
+        // Kiểm tra va chạm với player
+        SDL_Rect bulletRect = bullet->getRect();
+        SDL_Rect playerRect = player->getRect();
+        if (SDL_HasIntersection(&bulletRect, &playerRect)) {
+            // TODO: xử lý va chạm (giảm mạng, hiệu ứng nổ, game over...)
+        }
+    }
+
+    // Xoá đạn ra khỏi vector nếu ra ngoài màn hình
+    roundBullets.erase(
+        remove_if(roundBullets.begin(), roundBullets.end(),
+            [](RoundBullet* b) {
+                if (b->isOffScreen()) {
+                    delete b;
+                    return true;
+                }
+                return false;
+            }),
+        roundBullets.end());
+
 }
 
 void Game::render() {
@@ -106,6 +150,10 @@ void Game::render() {
     }
 
     enemy->render();
+
+    for (auto bullet : roundBullets) {
+        bullet->render();
+    }
 
 
     SDL_RenderPresent(renderer);
@@ -124,6 +172,12 @@ void Game::clean() {
     stars.clear();
 
     delete enemy;
+
+    for (auto bullet : roundBullets) {
+        delete bullet;
+    }
+    roundBullets.clear();
+    RoundBullet::unloadTexture();
 
 }
 
