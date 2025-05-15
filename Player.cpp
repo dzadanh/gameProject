@@ -60,4 +60,3 @@ SDL_Rect Player::getRect(){
 
 
 
-

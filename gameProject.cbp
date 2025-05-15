@@ -40,6 +40,8 @@
 		<Unit filename="enemy.cpp" />
 		<Unit filename="enemy.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="neddle_bullet.cpp" />
+		<Unit filename="neddle_bullet.h" />
 		<Unit filename="player.h" />
 		<Unit filename="round_bullet.cpp" />
 		<Unit filename="round_bullet.h" />

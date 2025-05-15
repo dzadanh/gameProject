@@ -1,9 +1,9 @@
 # depslib dependency file v1.0
-1746000481 source:c:\users\admin\onedrive\desktop\gameproject\main.cpp
+1747241126 source:c:\users\admin\onedrive\desktop\gameproject\main.cpp
 	"game.h"
 	<bits/stdc++.h>
 
-1747198703 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
+1747284523 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
 	"game.h"
 	"player.h"
 	"star.h"
@@ -11,44 +11,55 @@
 	"round_bullet.h"
 	<bits/stdc++.h>
 
-1746024772 c:\users\admin\onedrive\desktop\gameproject\game.h
+1747284487 c:\users\admin\onedrive\desktop\gameproject\game.h
 	<SDL.h>
 	<SDL_image.h>
 	"player.h"
 
-1746023424 c:\users\admin\onedrive\desktop\gameproject\player.h
+1747241179 c:\users\admin\onedrive\desktop\gameproject\player.h
 	<SDL.h>
 	<SDL_image.h>
 	<bits/stdc++.h>
 
-1747196563 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
+1747241193 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
 	"player.h"
 	<bits/stdc++.h>
 
-1747043296 source:c:\users\admin\onedrive\desktop\gameproject\star.cpp
+1747241211 source:c:\users\admin\onedrive\desktop\gameproject\star.cpp
 	"star.h"
 	<bits/stdc++.h>
 
-1746285119 c:\users\admin\onedrive\desktop\gameproject\star.h
+1747241203 c:\users\admin\onedrive\desktop\gameproject\star.h
 	<SDL.h>
 	<SDL_image.h>
 
-1747195863 c:\users\admin\onedrive\desktop\gameproject\enemy.h
+1747284533 c:\users\admin\onedrive\desktop\gameproject\enemy.h
 	<SDL.h>
 	<SDL_image.h>
 	<vector>
 
-1747197924 source:c:\users\admin\onedrive\desktop\gameproject\enemy.cpp
+1747284550 source:c:\users\admin\onedrive\desktop\gameproject\enemy.cpp
 	"enemy.h"
 	"round_bullet.h"
 	<bits/stdc++.h>
 
-1747198781 source:c:\users\admin\onedrive\desktop\gameproject\round_bullet.cpp
+1747284318 source:c:\users\admin\onedrive\desktop\gameproject\round_bullet.cpp
 	"round_bullet.h"
 	<iostream>
 
-1747198539 c:\users\admin\onedrive\desktop\gameproject\round_bullet.h
+1747284309 c:\users\admin\onedrive\desktop\gameproject\round_bullet.h
 	<SDL.h>
 	<SDL_image.h>
 	<cmath>
+
+1747240137 source:c:\users\admin\onedrive\desktop\gameproject\neddle_bullet.cpp
+	"neddle_bullet.h"
+	<bits/stdc++.h>
+
+1747239512 c:\users\admin\onedrive\desktop\gameproject\neddle_bullet.h
+	<SDL.h>
+	<SDL_image.h>
+
+1747240782 c:\users\admin\onedrive\desktop\gameproject\needle_bullet.h
+	<SDL.h>
 

@@ -5,7 +5,7 @@ using namespace std;
 
 Enemy::Enemy(SDL_Renderer* renderer)
     : renderer(renderer), texture(nullptr), speed(2), hasStopped(false) {
-    SDL_Surface* surface = IMG_Load("assets/enemy.png");
+    SDL_Surface* surface = IMG_Load("assets/enemy1.png");
     if (!surface) {
         std::cout << "Không thể load ảnh enemy: " << IMG_GetError() << std::endl;
     } else {
@@ -45,7 +45,7 @@ void Enemy::shootSpiralBullets(vector<RoundBullet*>& bullets) {
     float cy = rect.y + rect.h / 2.0f;
     static float spiralAngle = 0;
 
-    const int bulletCount = 30;
+    const int bulletCount = 14;
     const float speed = 1.4f;
 
     for (int i = 0; i < bulletCount; i++) {
@@ -61,7 +61,7 @@ void Enemy::shootSpreadBullets(std::vector<RoundBullet*>& bullets) {
     float cx = rect.x + rect.w / 2.0f;
     float cy = rect.y + rect.h;
 
-    const int bulletCount = 20;
+    const int bulletCount = 10;
     const float spreadAngle = M_PI;  // góc 180 độ
     const float startAngle = M_PI / 2 - spreadAngle / 2;
     const float speed = 1.4f;
