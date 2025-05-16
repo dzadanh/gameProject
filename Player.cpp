@@ -13,8 +13,14 @@ Player::Player(SDL_Renderer* renderer) : renderer(renderer), texture(nullptr), s
     }
     rect.w = 40;
     rect.h = 40;
-    rect.x = 368;// Giữa màn hình 800x600
+    rect.x = 368; // Giữa màn hình 800x600
     rect.y = 500;
+
+    // Khởi tạo hitbox ở chính giữa
+    hitbox.w = 10;
+    hitbox.h = 10;
+    hitbox.x = rect.x + (rect.w - hitbox.w) / 2;
+    hitbox.y = rect.y + (rect.h - hitbox.h) / 2;
 }
 
 Player::~Player(){
@@ -36,6 +42,10 @@ void Player::update(){
     if (rect.x + rect.w > 800) rect.x = 800 - rect.w;
     if (rect.y < 0) rect.y = 0;
     if (rect.y + rect.h > 600) rect.y = 600 - rect.h;
+
+    // Cập nhật vị trí hitbox
+    hitbox.x = rect.x + (rect.w - hitbox.w) / 2;
+    hitbox.y = rect.y + (rect.h - hitbox.h) / 2;
 }
 
 void Player::render(){
@@ -45,18 +55,15 @@ void Player::render(){
 void Player::setPosition(int x, int y){
     rect.x = x;
     rect.y = y;
+    // Cập nhật hitbox khi set vị trí
+    hitbox.x = rect.x + (rect.w - hitbox.w) / 2;
+    hitbox.y = rect.y + (rect.h - hitbox.h) / 2;
 }
 
 SDL_Rect Player::getRect(){
     return rect;
 }
 
-
-
-
-
-
-
-
-
-
+SDL_Rect Player::getHitbox(){
+    return hitbox;
+}

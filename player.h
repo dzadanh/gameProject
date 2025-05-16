@@ -16,12 +16,14 @@ public:
 
     void setPosition(int x, int y);
     SDL_Rect getRect();
+    SDL_Rect getHitbox(); // Thêm hàm lấy hitbox
 
 private:
     SDL_Renderer* renderer;
     SDL_Texture* texture;
     SDL_Rect rect;
+    SDL_Rect hitbox; // Thêm hitbox
     int speed;
 };
 
-#endif // PL
+#endif

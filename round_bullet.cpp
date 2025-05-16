@@ -25,8 +25,8 @@ void RoundBullet::unloadTexture() {
 RoundBullet::RoundBullet(SDL_Renderer* renderer, float x, float y, float angle, float speed)
     : renderer(renderer), x(x), y(y)
 {
-    width = 50;
-    height = 50;
+    width = 10;
+    height = 10;
     vx = cos(angle) * speed;
     vy = sin(angle) * speed;
 }

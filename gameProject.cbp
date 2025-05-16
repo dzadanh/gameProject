@@ -39,6 +39,8 @@
 		<Unit filename="Star.h" />
 		<Unit filename="enemy.cpp" />
 		<Unit filename="enemy.h" />
+		<Unit filename="explosion.cpp" />
+		<Unit filename="explosion.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="neddle_bullet.cpp" />
 		<Unit filename="neddle_bullet.h" />

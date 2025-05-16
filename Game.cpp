@@ -3,21 +3,22 @@
 #include "star.h"
 #include "enemy.h"
 #include "round_bullet.h"
+#include "explosion.h"
 #include <bits/stdc++.h>
 using namespace std;
 
 Player* player = nullptr;
 vector<Star*> stars;
+vector<Enemy*> enemies;
 int score = 0;
+int stage = 1;
 
 Uint32 lastStarResetTime = 0;
-const Uint32 STAR_RESET_INTERVAL = 5000; // 5 giây
+const Uint32 STAR_RESET_INTERVAL = 5000;
 
-Enemy* enemy = nullptr;
 vector<RoundBullet*> roundBullets;
-
 Uint32 lastEnemyShootTime = 0;
-const Uint32 ENEMY_SHOOT_INTERVAL = 1000; // 3 giây bắn 1 lần
+const Uint32 ENEMY_SHOOT_INTERVAL = 1000;
 
 bool Game::init(const char* title, int width, int height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -43,12 +44,10 @@ bool Game::init(const char* title, int width, int height) {
     }
 
     player = new Player(renderer);
-
-    // Tạo một ngôi sao duy nhất
     stars.push_back(new Star(renderer));
     lastStarResetTime = SDL_GetTicks();
 
-    enemy = new Enemy(renderer);
+    enemies.push_back(new Enemy(renderer, 1));
 
     RoundBullet::loadTexture(renderer);
 
@@ -70,7 +69,6 @@ void Game::handleEvents() {
 void Game::update() {
     Uint32 currentTime = SDL_GetTicks();
 
-    // Reset sao sau mỗi 3 giây
     if (currentTime - lastStarResetTime >= STAR_RESET_INTERVAL) {
         if (!stars.empty()) {
             stars[0]->reset();
@@ -88,44 +86,83 @@ void Game::update() {
         if (SDL_HasIntersection(&playerRect, &starRect)) {
             score++;
             star->reset();
-            lastStarResetTime = currentTime; // reset lại thời gian đếm 3s tiếp theo
+            lastStarResetTime = currentTime;
+
+            if (score >= 4 && stage == 1) {
+                stage = 2;
+                if (!enemies.empty()) {
+                    enemies[0]->flyUp(); // Enemy1 bay lên
+                }
+                enemies.push_back(new Enemy(renderer, 2));
+            } else if (score >= 10 && stage == 2) {
+                stage = 3;
+                for (auto enemy : enemies) {
+                    enemy->flyUp(); // Tất cả enemy hiện tại bay lên
+                }
+                enemies.push_back(new Enemy(renderer, 3));
+            } else if (score >= 14 && stage == 3) {
+                cout << "Chúc mừng! Bạn đã chiến thắng!" << endl;
+                if (!enemies.empty()) {
+                    SDL_Rect enemyRect = enemies.back()->getRect();
+                    explosions.push_back(new Explosion(renderer, enemyRect.x + enemyRect.w / 2, enemyRect.y + enemyRect.h / 2));
+                    delete enemies.back();
+                    enemies.pop_back();
+                }
+            }
         }
 
         if (star->isOffScreen()) {
-            // Nếu rơi quá màn hình thì không reset ngay — để giữ thời gian cách nhau 3s
-            // hoặc có thể reset để cho rơi lại ngay:
-            // star->reset();
+            // Không reset ngay
         }
     }
 
-    enemy->update();
+    for (auto enemy : enemies) {
+        enemy->update();
 
-    // Bắn đạn mỗi 3 giây
-    if (enemy->hasStoppedMoving() && currentTime - lastEnemyShootTime >= ENEMY_SHOOT_INTERVAL) {
-        int shootType = rand() % 2;
-        if (shootType == 0) {
-            enemy->shootSpiralBullets(roundBullets);
-        } else {
-            enemy->shootSpreadBullets(roundBullets);
+        if (enemy->hasStoppedMoving() && currentTime - lastEnemyShootTime >= ENEMY_SHOOT_INTERVAL) {
+            int shootType;
+            if (stage == 3) {
+                shootType = rand() % 4; // Enemy3 bắn cả 4 kiểu
+            } else if (stage == 2) {
+                shootType = rand() % 3; // Enemy2 bắn 3 kiểu
+            } else {
+                shootType = rand() % 2; // Enemy1 bắn 2 kiểu
+            }
+            if (shootType == 0) {
+                enemy->shootSpiralBullets(roundBullets);
+            } else if (shootType == 1) {
+                enemy->shootSpreadBullets(roundBullets);
+            } else if (shootType == 2 && stage >= 2) {
+                enemy->shootRandomBullets(roundBullets);
+            } else if (shootType == 3 && stage >= 3) {
+                enemy->shootSpiralWaveBullets(roundBullets);
+            }
+            lastEnemyShootTime = currentTime;
         }
-
-        lastEnemyShootTime = currentTime;
     }
 
+    enemies.erase(
+        remove_if(enemies.begin(), enemies.end(),
+            [](Enemy* e) {
+                if (e->isOffScreen()) {
+                    delete e;
+                    return true;
+                }
+                return false;
+            }),
+        enemies.end());
 
-    // Cập nhật đạn
     for (auto bullet : roundBullets) {
         bullet->update();
 
-        // Kiểm tra va chạm với player
         SDL_Rect bulletRect = bullet->getRect();
-        SDL_Rect playerRect = player->getRect();
-        if (SDL_HasIntersection(&bulletRect, &playerRect)) {
-            // TODO: xử lý va chạm (giảm mạng, hiệu ứng nổ, game over...)
+        SDL_Rect playerHitbox = player->getHitbox(); // Dùng hitbox thay vì rect
+        if (SDL_HasIntersection(&bulletRect, &playerHitbox)) {
+            cout << "Game Over! Bạn đã bị trúng đạn!" << endl;
+            isRunning = false;
         }
     }
 
-    // Xoá đạn ra khỏi vector nếu ra ngoài màn hình
     roundBullets.erase(
         remove_if(roundBullets.begin(), roundBullets.end(),
             [](RoundBullet* b) {
@@ -137,24 +174,38 @@ void Game::update() {
             }),
         roundBullets.end());
 
+    for (auto explosion : explosions) {
+        explosion->update();
+    }
+    explosions.erase(
+        remove_if(explosions.begin(), explosions.end(),
+            [](Explosion* e) {
+                if (e->isFinished()) {
+                    delete e;
+                    return true;
+                }
+                return false;
+            }),
+        explosions.end());
 }
 
 void Game::render() {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Xoá nền
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
     player->render();
-
     for (auto star : stars) {
         star->render();
     }
-
-    enemy->render();
-
+    for (auto enemy : enemies) {
+        enemy->render();
+    }
     for (auto bullet : roundBullets) {
         bullet->render();
     }
-
+    for (auto explosion : explosions) {
+        explosion->render();
+    }
 
     SDL_RenderPresent(renderer);
 }
@@ -171,14 +222,22 @@ void Game::clean() {
     }
     stars.clear();
 
-    delete enemy;
+    for (auto enemy : enemies) {
+        delete enemy;
+    }
+    enemies.clear();
 
     for (auto bullet : roundBullets) {
         delete bullet;
     }
     roundBullets.clear();
-    RoundBullet::unloadTexture();
 
+    for (auto explosion : explosions) {
+        delete explosion;
+    }
+    explosions.clear();
+
+    RoundBullet::unloadTexture();
 }
 
 bool Game::running() {
@@ -190,6 +249,6 @@ void Game::run() {
         handleEvents();
         update();
         render();
-        SDL_Delay(16); // ~60 FPS
+        SDL_Delay(16);
     }
 }
