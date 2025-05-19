@@ -7,9 +7,9 @@
 
 class RoundBullet {
 public:
-    static void loadTexture(SDL_Renderer* renderer);  // thêm hàm static
-    static void unloadTexture();                      // giải phóng khi clean
-    static SDL_Texture* sharedTexture;                // texture dùng chung
+    static void loadTexture(SDL_Renderer* renderer);
+    static void unloadTexture();
+    static SDL_Texture* sharedTexture;
 
     RoundBullet(SDL_Renderer* renderer, float x, float y, float angle, float speed);
     void update();

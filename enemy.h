@@ -15,8 +15,7 @@ public:
     void render();
     void shootSpiralBullets(std::vector<RoundBullet*>& bullets);
     void shootSpreadBullets(std::vector<RoundBullet*>& bullets);
-    void shootRandomBullets(std::vector<RoundBullet*>& bullets); // 5 viên cùng hướng
-    void shootSpiralWaveBullets(std::vector<RoundBullet*>& bullets);
+    void shootRandomBullets(std::vector<RoundBullet*>& bullets);
     bool hasStoppedMoving();
     bool isOffScreen();
     void flyUp();

@@ -88,19 +88,19 @@ void Game::update() {
             star->reset();
             lastStarResetTime = currentTime;
 
-            if (score >= 4 && stage == 1) {
+            if (score >= 2 && stage == 1) {
                 stage = 2;
                 if (!enemies.empty()) {
-                    enemies[0]->flyUp(); // Enemy1 bay lên
+                    enemies[0]->flyUp();
                 }
                 enemies.push_back(new Enemy(renderer, 2));
-            } else if (score >= 10 && stage == 2) {
+            } else if (score >= 4 && stage == 2) {
                 stage = 3;
                 for (auto enemy : enemies) {
-                    enemy->flyUp(); // Tất cả enemy hiện tại bay lên
+                    enemy->flyUp();
                 }
                 enemies.push_back(new Enemy(renderer, 3));
-            } else if (score >= 14 && stage == 3) {
+            } else if (score >= 6 && stage == 3) {
                 cout << "Chúc mừng! Bạn đã chiến thắng!" << endl;
                 if (!enemies.empty()) {
                     SDL_Rect enemyRect = enemies.back()->getRect();
@@ -122,7 +122,7 @@ void Game::update() {
         if (enemy->hasStoppedMoving() && currentTime - lastEnemyShootTime >= ENEMY_SHOOT_INTERVAL) {
             int shootType;
             if (stage == 3) {
-                shootType = rand() % 4; // Enemy3 bắn cả 4 kiểu
+                shootType = rand() % 3; // Enemy3 bắn 3 kiểu
             } else if (stage == 2) {
                 shootType = rand() % 3; // Enemy2 bắn 3 kiểu
             } else {
@@ -134,8 +134,6 @@ void Game::update() {
                 enemy->shootSpreadBullets(roundBullets);
             } else if (shootType == 2 && stage >= 2) {
                 enemy->shootRandomBullets(roundBullets);
-            } else if (shootType == 3 && stage >= 3) {
-                enemy->shootSpiralWaveBullets(roundBullets);
             }
             lastEnemyShootTime = currentTime;
         }
@@ -156,7 +154,7 @@ void Game::update() {
         bullet->update();
 
         SDL_Rect bulletRect = bullet->getRect();
-        SDL_Rect playerHitbox = player->getHitbox(); // Dùng hitbox thay vì rect
+        SDL_Rect playerHitbox = player->getHitbox();
         if (SDL_HasIntersection(&bulletRect, &playerHitbox)) {
             cout << "Game Over! Bạn đã bị trúng đạn!" << endl;
             isRunning = false;

@@ -21,16 +21,13 @@ void RoundBullet::unloadTexture() {
     }
 }
 
-
 RoundBullet::RoundBullet(SDL_Renderer* renderer, float x, float y, float angle, float speed)
-    : renderer(renderer), x(x), y(y)
-{
-    width = 10;
+    : renderer(renderer), x(x), y(y) {
+    width = 10; // Điều chỉnh kích thước đạn nếu cần
     height = 10;
     vx = cos(angle) * speed;
     vy = sin(angle) * speed;
 }
-
 
 void RoundBullet::update() {
     x += vx;
@@ -41,7 +38,6 @@ void RoundBullet::render() {
     SDL_Rect dstRect = {(int)x, (int)y, width, height};
     SDL_RenderCopy(renderer, sharedTexture, NULL, &dstRect);
 }
-
 
 bool RoundBullet::isOffScreen() {
     return (x < -width || x > 800 || y < -height || y > 600);

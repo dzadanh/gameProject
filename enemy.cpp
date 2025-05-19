@@ -43,8 +43,8 @@ void Enemy::shootSpiralBullets(vector<RoundBullet*>& bullets) {
     float cy = rect.y + rect.h / 2.0f;
     static float spiralAngle = 0;
 
-    int bulletCount = 14 + stage * 2;
-    float speed = 1.4f + stage * 0.2f;
+    int bulletCount = 5 + stage * 5;// Số lượng đạn cho spiral
+    float speed = 1.4f + stage * 0.5f; // Tốc độ đạn cho spiral
 
     for (int i = 0; i < bulletCount; i++) {
         float angle = spiralAngle + (2 * M_PI / bulletCount) * i;
@@ -58,10 +58,10 @@ void Enemy::shootSpreadBullets(std::vector<RoundBullet*>& bullets) {
     float cx = rect.x + rect.w / 2.0f;
     float cy = rect.y + rect.h;
 
-    int bulletCount = 10 + stage * 2;
+    int bulletCount = 4 + stage * 4; // Số lượng đạn cho spread
     float spreadAngle = M_PI;
     float startAngle = M_PI / 2 - spreadAngle / 2;
-    float speed = 1.4f + stage * 0.2f;
+    float speed = 1.4f + stage * 0.5f; // Tốc độ đạn cho spread
 
     for (int i = 0; i < bulletCount; i++) {
         float angle = startAngle + i * (spreadAngle / (bulletCount - 1));
@@ -73,10 +73,10 @@ void Enemy::shootRandomBullets(std::vector<RoundBullet*>& bullets) {
     float cx = rect.x + rect.w / 2.0f;
     float cy = rect.y + rect.h;
 
-    int bulletCount = 5;
-    float speed = 1.4f + stage * 0.2f;
+    int bulletCount = 5; // Số lượng đạn cho random
+    float speed = 1.4f + stage * 0.5f; // Tốc độ đạn cho random
     float angle = (rand() % 360) * M_PI / 180.0f; // Chọn một góc ngẫu nhiên
-    float spacing = 10.0f; // Khoảng cách giữa các viên đạn
+    float spacing = 40.0f; // Khoảng cách giữa các viên đạn
 
     // Góc vuông góc với hướng bắn để xếp đạn
     float perpendicularAngle = angle + M_PI / 2;
@@ -88,34 +88,6 @@ void Enemy::shootRandomBullets(std::vector<RoundBullet*>& bullets) {
         float bulletY = cy + offset * sin(perpendicularAngle);
         bullets.push_back(new RoundBullet(renderer, bulletX, bulletY, angle, speed));
     }
-}
-
-void Enemy::shootSpiralWaveBullets(std::vector<RoundBullet*>& bullets) {
-    float cx = rect.x + rect.w / 2.0f;
-    float cy = rect.y + rect.h / 2.0f;
-    static float waveAngle = 0.0f; // Góc ban đầu
-
-    int bulletCount = 20 + stage * 5; // Tăng số lượng đạn để tạo hiệu ứng xoắn ốc rõ hơn
-    float speed = 1.4f + stage * 0.2f;
-    const float phi = (1.0f + sqrt(5.0f)) / 2.0f; // Tỉ lệ vàng
-    const float scaleFactor = 0.1f; // Hằng số điều chỉnh kích thước xoắn ốc
-    const float angleStep = M_PI / 8.0f; // Bước góc để tạo các vòng
-
-    for (int i = 0; i < bulletCount; i++) {
-        // Tính góc dựa trên waveAngle
-        float theta = waveAngle + i * angleStep;
-        // Tính bán kính theo xoắn ốc vàng: r = a * e^(b * theta), với b liên quan đến phi
-        float radius = scaleFactor * exp((log(phi) / (2.0f * M_PI)) * theta);
-
-        // Tính tọa độ ban đầu dựa trên xoắn ốc
-        float bulletX = cx + radius * cos(theta);
-        float bulletY = cy + radius * sin(theta);
-
-        // Tạo viên đạn với hướng di chuyển dựa trên góc theta
-        bullets.push_back(new RoundBullet(renderer, bulletX, bulletY, theta, speed));
-    }
-
-    waveAngle += angleStep / 10.0f; // Tăng góc chậm để tạo hiệu ứng xoắn ốc liên tục
 }
 
 void Enemy::render() {
