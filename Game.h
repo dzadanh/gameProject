@@ -3,20 +3,18 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
-#include "player.h"
-#include "enemy.h"
-#include "explosion.h"
 #include <vector>
 
-extern Player* player;
-extern std::vector<Enemy*> enemies;
-extern int score;
-extern int stage;
+class Player;
+class Star;
+class Enemy;
+class RoundBullet;
+class Explosion;
 
 class Game {
 public:
-    Game() : window(nullptr), renderer(nullptr), isRunning(false) {}
-
+    Game();
+    ~Game();
     bool init(const char* title, int width, int height);
     void handleEvents();
     void update();
@@ -29,7 +27,19 @@ private:
     SDL_Window* window;
     SDL_Renderer* renderer;
     bool isRunning;
-    std::vector<Explosion*> explosions; // Thêm để quản lý hiệu ứng nổ
+    Player* player;
+    std::vector<Star*> stars;
+    std::vector<Enemy*> enemies;
+    std::vector<RoundBullet*> roundBullets;
+    std::vector<Explosion*> explosions;
+    int score;
+    int stage;
+    Uint32 lastStarResetTime;
+    const Uint32 STAR_RESET_INTERVAL;
+    Uint32 lastEnemyShootTime;
+    const Uint32 ENEMY_SHOOT_INTERVAL;
+    SDL_Texture* backgroundTexture; // Thêm texture cho background
+    SDL_Rect backgroundRect;        // Thêm rect cho background
 };
 
 #endif

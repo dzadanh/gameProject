@@ -3,7 +3,7 @@
 	"game.h"
 	<bits/stdc++.h>
 
-1747666739 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
+1747671733 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
 	"game.h"
 	"player.h"
 	"star.h"
@@ -12,12 +12,9 @@
 	"explosion.h"
 	<bits/stdc++.h>
 
-1747408898 c:\users\admin\onedrive\desktop\gameproject\game.h
+1747671739 c:\users\admin\onedrive\desktop\gameproject\game.h
 	<SDL.h>
 	<SDL_image.h>
-	"player.h"
-	"enemy.h"
-	"explosion.h"
 	<vector>
 
 1747389285 c:\users\admin\onedrive\desktop\gameproject\player.h
@@ -71,7 +68,7 @@
 	<SDL.h>
 	<SDL_image.h>
 
-1747666667 source:c:\users\admin\onedrive\desktop\gameproject\explosion.cpp
+1747670257 source:c:\users\admin\onedrive\desktop\gameproject\explosion.cpp
 	"explosion.h"
 	<iostream>
 

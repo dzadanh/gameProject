@@ -20,6 +20,15 @@ vector<RoundBullet*> roundBullets;
 Uint32 lastEnemyShootTime = 0;
 const Uint32 ENEMY_SHOOT_INTERVAL = 1000;
 
+Game::Game()
+    : window(nullptr), renderer(nullptr), isRunning(false), player(nullptr),
+      score(0), stage(1), lastStarResetTime(0), STAR_RESET_INTERVAL(5000),
+      lastEnemyShootTime(0), ENEMY_SHOOT_INTERVAL(1000), backgroundTexture(nullptr) {}
+
+Game::~Game() {
+    clean();
+}
+
 bool Game::init(const char* title, int width, int height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         cout << "SDL không thể khởi tạo! Lỗi: " << SDL_GetError() << endl;
@@ -43,6 +52,9 @@ bool Game::init(const char* title, int width, int height) {
         return false;
     }
 
+    // Bật alpha blending cho renderer
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
     player = new Player(renderer);
     stars.push_back(new Star(renderer));
     lastStarResetTime = SDL_GetTicks();
@@ -50,6 +62,20 @@ bool Game::init(const char* title, int width, int height) {
     enemies.push_back(new Enemy(renderer, 1));
 
     RoundBullet::loadTexture(renderer);
+
+    // Load background
+    SDL_Surface* backgroundSurface = IMG_Load("assets/background.png");
+    if (!backgroundSurface) {
+        cout << "Lỗi load background: " << IMG_GetError() << endl;
+        return false;
+    }
+    backgroundTexture = SDL_CreateTextureFromSurface(renderer, backgroundSurface);
+    SDL_FreeSurface(backgroundSurface);
+
+    backgroundRect.x = 0;
+    backgroundRect.y = 0;
+    backgroundRect.w = width;
+    backgroundRect.h = height;
 
     isRunning = true;
     return true;
@@ -88,19 +114,19 @@ void Game::update() {
             star->reset();
             lastStarResetTime = currentTime;
 
-            if (score >= 2 && stage == 1) {
+            if (score >= 15 && stage == 1) {
                 stage = 2;
                 if (!enemies.empty()) {
                     enemies[0]->flyUp();
                 }
                 enemies.push_back(new Enemy(renderer, 2));
-            } else if (score >= 4 && stage == 2) {
+            } else if (score >= 30 && stage == 2) {
                 stage = 3;
                 for (auto enemy : enemies) {
                     enemy->flyUp();
                 }
                 enemies.push_back(new Enemy(renderer, 3));
-            } else if (score >= 6 && stage == 3) {
+            } else if (score >= 40 && stage == 3) {
                 cout << "Chúc mừng! Bạn đã chiến thắng!" << endl;
                 if (!enemies.empty()) {
                     SDL_Rect enemyRect = enemies.back()->getRect();
@@ -191,6 +217,11 @@ void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
+    // Render background
+    if (backgroundTexture) {
+        SDL_RenderCopy(renderer, backgroundTexture, nullptr, &backgroundRect);
+    }
+
     player->render();
     for (auto star : stars) {
         star->render();
@@ -236,6 +267,9 @@ void Game::clean() {
     explosions.clear();
 
     RoundBullet::unloadTexture();
+    if (backgroundTexture) {
+        SDL_DestroyTexture(backgroundTexture);
+    }
 }
 
 bool Game::running() {
