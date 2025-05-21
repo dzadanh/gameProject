@@ -3,7 +3,7 @@
 	"game.h"
 	<bits/stdc++.h>
 
-1747671733 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
+1747799163 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
 	"game.h"
 	"player.h"
 	"star.h"
@@ -12,17 +12,20 @@
 	"explosion.h"
 	<bits/stdc++.h>
 
-1747671739 c:\users\admin\onedrive\desktop\gameproject\game.h
+1747799151 c:\users\admin\onedrive\desktop\gameproject\game.h
 	<SDL.h>
 	<SDL_image.h>
+	<SDL_ttf.h>
+	<SDL_mixer.h>
 	<vector>
+	<string>
 
-1747389285 c:\users\admin\onedrive\desktop\gameproject\player.h
+1747758490 c:\users\admin\onedrive\desktop\gameproject\player.h
 	<SDL.h>
 	<SDL_image.h>
 	<bits/stdc++.h>
 
-1747389406 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
+1747799303 source:c:\users\admin\onedrive\desktop\gameproject\player.cpp
 	"player.h"
 	<bits/stdc++.h>
 
@@ -34,12 +37,12 @@
 	<SDL.h>
 	<SDL_image.h>
 
-1747665364 c:\users\admin\onedrive\desktop\gameproject\enemy.h
+1747758504 c:\users\admin\onedrive\desktop\gameproject\enemy.h
 	<SDL.h>
 	<SDL_image.h>
 	<vector>
 
-1747665804 source:c:\users\admin\onedrive\desktop\gameproject\enemy.cpp
+1747758509 source:c:\users\admin\onedrive\desktop\gameproject\enemy.cpp
 	"enemy.h"
 	"round_bullet.h"
 	<bits/stdc++.h>

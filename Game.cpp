@@ -21,22 +21,33 @@ Uint32 lastEnemyShootTime = 0;
 const Uint32 ENEMY_SHOOT_INTERVAL = 1000;
 
 Game::Game()
-    : window(nullptr), renderer(nullptr), isRunning(false), player(nullptr),
-      score(0), stage(1), lastStarResetTime(0), STAR_RESET_INTERVAL(5000),
-      lastEnemyShootTime(0), ENEMY_SHOOT_INTERVAL(1000), backgroundTexture(nullptr) {}
+    : currentState(MENU), window(nullptr), renderer(nullptr), isRunning(false),
+      player(nullptr), score(0), stage(1), lastStarResetTime(0),
+      STAR_RESET_INTERVAL(5000), lastEnemyShootTime(0), ENEMY_SHOOT_INTERVAL(1000),
+      backgroundTexture(nullptr), menuBackgroundTexture(nullptr), menuMusic(nullptr) {}
 
 Game::~Game() {
     clean();
 }
 
 bool Game::init(const char* title, int width, int height) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         cout << "SDL không thể khởi tạo! Lỗi: " << SDL_GetError() << endl;
         return false;
     }
 
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
         cout << "SDL_image lỗi: " << IMG_GetError() << endl;
+        return false;
+    }
+
+    if (TTF_Init() == -1) {
+        cout << "SDL_ttf lỗi: " << TTF_GetError() << endl;
+        return false;
+    }
+
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        cout << "SDL_mixer lỗi: " << Mix_GetError() << endl;
         return false;
     }
 
@@ -52,7 +63,6 @@ bool Game::init(const char* title, int width, int height) {
         return false;
     }
 
-    // Bật alpha blending cho renderer
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     player = new Player(renderer);
@@ -63,7 +73,6 @@ bool Game::init(const char* title, int width, int height) {
 
     RoundBullet::loadTexture(renderer);
 
-    // Load background
     SDL_Surface* backgroundSurface = IMG_Load("assets/background.png");
     if (!backgroundSurface) {
         cout << "Lỗi load background: " << IMG_GetError() << endl;
@@ -77,8 +86,63 @@ bool Game::init(const char* title, int width, int height) {
     backgroundRect.w = width;
     backgroundRect.h = height;
 
+    // Load menu background
+    SDL_Surface* menuBackgroundSurface = IMG_Load("assets/menu_background.png");
+    if (!menuBackgroundSurface) {
+        cout << "Lỗi load menu background: " << IMG_GetError() << endl;
+        return false;
+    }
+    menuBackgroundTexture = SDL_CreateTextureFromSurface(renderer, menuBackgroundSurface);
+    SDL_FreeSurface(menuBackgroundSurface);
+
+    menuBackgroundRect.x = 0;
+    menuBackgroundRect.y = 0;
+    menuBackgroundRect.w = width;
+    menuBackgroundRect.h = height;
+
+    // Load menu music
+    menuMusic = Mix_LoadMUS("assets/menu_music.mp3");
+    if (!menuMusic) {
+        cout << "Lỗi load menu music: " << Mix_GetError() << endl;
+        return false;
+    }
+    Mix_PlayMusic(menuMusic, -1);
+
+    initMenu();
+
     isRunning = true;
     return true;
+}
+
+void Game::initMenu() {
+    vector<string> buttonLabels = {"Play"};
+    int buttonWidth = 200;
+    int buttonHeight = 60;
+    int startY = 270; // Căn giữa theo chiều dọc
+    int spacing = 20;
+
+    SDL_Color textColor = {255, 255, 255, 255};
+    TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 32);
+    if (!font) {
+        cout << "Lỗi load font: " << TTF_GetError() << endl;
+        return;
+    }
+
+    for (size_t i = 0; i < buttonLabels.size(); ++i) {
+        Button button;
+        button.rect.w = buttonWidth;
+        button.rect.h = buttonHeight;
+        button.rect.x = (800 - buttonWidth) / 2; // Căn giữa theo chiều ngang
+        button.rect.y = startY + i * (buttonHeight + spacing);
+        button.label = buttonLabels[i];
+
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, button.label.c_str(), textColor);
+        button.texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_FreeSurface(textSurface);
+
+        buttons.push_back(button);
+    }
+    TTF_CloseFont(font);
 }
 
 void Game::handleEvents() {
@@ -87,12 +151,47 @@ void Game::handleEvents() {
         if (event.type == SDL_QUIT) {
             isRunning = false;
         }
+
+        switch (currentState) {
+            case MENU:
+                handleMenuEvents(event);
+                break;
+            case PLAYING:
+                if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+                    currentState = MENU;
+                    Mix_PlayMusic(menuMusic, -1);
+                }
+                break;
+        }
     }
-    const Uint8* keystates = SDL_GetKeyboardState(NULL);
-    player->handleInput(keystates);
+    // Đảm bảo xử lý input liên tục khi ở trạng thái PLAYING
+    if (currentState == PLAYING) {
+        const Uint8* keystates = SDL_GetKeyboardState(NULL);
+        player->handleInput(keystates);
+    }
+}
+
+void Game::handleMenuEvents(SDL_Event& event) {
+    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+        int mouseX = event.button.x;
+        int mouseY = event.button.y;
+
+        for (size_t i = 0; i < buttons.size(); ++i) {
+            SDL_Rect buttonRect = buttons[i].rect;
+            if (mouseX >= buttonRect.x && mouseX <= buttonRect.x + buttonRect.w &&
+                mouseY >= buttonRect.y && mouseY <= buttonRect.y + buttonRect.h) {
+                if (buttons[i].label == "Play") {
+                    currentState = PLAYING;
+                    Mix_HaltMusic(); // Dừng nhạc menu khi vào gameplay
+                }
+            }
+        }
+    }
 }
 
 void Game::update() {
+    if (currentState != PLAYING) return;
+
     Uint32 currentTime = SDL_GetTicks();
 
     if (currentTime - lastStarResetTime >= STAR_RESET_INTERVAL) {
@@ -217,35 +316,73 @@ void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    // Render background
-    if (backgroundTexture) {
-        SDL_RenderCopy(renderer, backgroundTexture, nullptr, &backgroundRect);
-    }
-
-    player->render();
-    for (auto star : stars) {
-        star->render();
-    }
-    for (auto enemy : enemies) {
-        enemy->render();
-    }
-    for (auto bullet : roundBullets) {
-        bullet->render();
-    }
-    for (auto explosion : explosions) {
-        explosion->render();
+    switch (currentState) {
+        case MENU:
+            renderMenu();
+            break;
+        case PLAYING:
+            if (backgroundTexture) {
+                SDL_RenderCopy(renderer, backgroundTexture, nullptr, &backgroundRect);
+            }
+            player->render();
+            for (auto star : stars) {
+                star->render();
+            }
+            for (auto enemy : enemies) {
+                enemy->render();
+            }
+            for (auto bullet : roundBullets) {
+                bullet->render();
+            }
+            for (auto explosion : explosions) {
+                explosion->render();
+            }
+            break;
     }
 
     SDL_RenderPresent(renderer);
 }
 
+void Game::renderMenu() {
+    if (menuBackgroundTexture) {
+        SDL_RenderCopy(renderer, menuBackgroundTexture, nullptr, &menuBackgroundRect);
+    }
+
+    for (const auto& button : buttons) {
+        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        SDL_RenderFillRect(renderer, &button.rect);
+        SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+        SDL_RenderDrawRect(renderer, &button.rect);
+
+        int textW, textH;
+        SDL_QueryTexture(button.texture, nullptr, nullptr, &textW, &textH);
+        SDL_Rect textRect = {button.rect.x + (button.rect.w - textW) / 2, button.rect.y + (button.rect.h - textH) / 2, textW, textH};
+        SDL_RenderCopy(renderer, button.texture, nullptr, &textRect);
+    }
+}
+
 void Game::clean() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    for (auto& button : buttons) {
+        SDL_DestroyTexture(button.texture);
+    }
+    buttons.clear();
+    if (backgroundTexture) {
+        SDL_DestroyTexture(backgroundTexture);
+    }
+    if (menuBackgroundTexture) {
+        SDL_DestroyTexture(menuBackgroundTexture);
+    }
+    if (menuMusic) {
+        Mix_FreeMusic(menuMusic);
+    }
+    Mix_Quit();
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
-    delete player;
 
+    delete player;
     for (auto star : stars) {
         delete star;
     }
@@ -267,9 +404,6 @@ void Game::clean() {
     explosions.clear();
 
     RoundBullet::unloadTexture();
-    if (backgroundTexture) {
-        SDL_DestroyTexture(backgroundTexture);
-    }
 }
 
 bool Game::running() {
