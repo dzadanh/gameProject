@@ -3,7 +3,7 @@
 	"game.h"
 	<bits/stdc++.h>
 
-1747799163 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
+1747801006 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
 	"game.h"
 	"player.h"
 	"star.h"
@@ -12,7 +12,7 @@
 	"explosion.h"
 	<bits/stdc++.h>
 
-1747799151 c:\users\admin\onedrive\desktop\gameproject\game.h
+1747800071 c:\users\admin\onedrive\desktop\gameproject\game.h
 	<SDL.h>
 	<SDL_image.h>
 	<SDL_ttf.h>

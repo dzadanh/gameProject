@@ -29,7 +29,8 @@ public:
 private:
     enum GameState {
         MENU,
-        PLAYING
+        PLAYING,
+        TUTORIAL
     };
 
     GameState currentState;
@@ -60,10 +61,13 @@ private:
     SDL_Texture* menuBackgroundTexture;
     SDL_Rect menuBackgroundRect;
     Mix_Music* menuMusic;
+    Mix_Music* gameMusic;
+    bool musicOn;
 
     void initMenu();
     void handleMenuEvents(SDL_Event& event);
     void renderMenu();
+    void renderTutorial();
 };
 
 #endif

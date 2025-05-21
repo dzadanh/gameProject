@@ -24,7 +24,8 @@ Game::Game()
     : currentState(MENU), window(nullptr), renderer(nullptr), isRunning(false),
       player(nullptr), score(0), stage(1), lastStarResetTime(0),
       STAR_RESET_INTERVAL(5000), lastEnemyShootTime(0), ENEMY_SHOOT_INTERVAL(1000),
-      backgroundTexture(nullptr), menuBackgroundTexture(nullptr), menuMusic(nullptr) {}
+      backgroundTexture(nullptr), menuBackgroundTexture(nullptr), menuMusic(nullptr),
+      gameMusic(nullptr), musicOn(true) {}
 
 Game::~Game() {
     clean();
@@ -106,7 +107,17 @@ bool Game::init(const char* title, int width, int height) {
         cout << "Lỗi load menu music: " << Mix_GetError() << endl;
         return false;
     }
-    Mix_PlayMusic(menuMusic, -1);
+
+    // Load game music
+    gameMusic = Mix_LoadMUS("assets/game_music.mp3");
+    if (!gameMusic) {
+        cout << "Lỗi load game music: " << Mix_GetError() << endl;
+        return false;
+    }
+
+    if (musicOn) {
+        Mix_PlayMusic(menuMusic, -1);
+    }
 
     initMenu();
 
@@ -115,10 +126,10 @@ bool Game::init(const char* title, int width, int height) {
 }
 
 void Game::initMenu() {
-    vector<string> buttonLabels = {"Play"};
+    vector<string> buttonLabels = {"Play", "Music On/Off", "Tutorial"};
     int buttonWidth = 200;
     int buttonHeight = 60;
-    int startY = 270; // Căn giữa theo chiều dọc
+    int startY = 200; // Bắt đầu từ trên xuống
     int spacing = 20;
 
     SDL_Color textColor = {255, 255, 255, 255};
@@ -159,7 +170,13 @@ void Game::handleEvents() {
             case PLAYING:
                 if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
                     currentState = MENU;
-                    Mix_PlayMusic(menuMusic, -1);
+                    if (musicOn) Mix_PlayMusic(menuMusic, -1);
+                }
+                break;
+            case TUTORIAL:
+                if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+                    currentState = MENU;
+                    if (musicOn) Mix_PlayMusic(menuMusic, -1);
                 }
                 break;
         }
@@ -182,7 +199,19 @@ void Game::handleMenuEvents(SDL_Event& event) {
                 mouseY >= buttonRect.y && mouseY <= buttonRect.y + buttonRect.h) {
                 if (buttons[i].label == "Play") {
                     currentState = PLAYING;
-                    Mix_HaltMusic(); // Dừng nhạc menu khi vào gameplay
+                    Mix_HaltMusic();
+                    if (musicOn) Mix_PlayMusic(gameMusic, -1);
+                } else if (buttons[i].label == "Music") {
+                    musicOn = !musicOn;
+                    if (!musicOn) {
+                        Mix_HaltMusic();
+                    } else {
+                        if (currentState == MENU) Mix_PlayMusic(menuMusic, -1);
+                        else if (currentState == PLAYING) Mix_PlayMusic(gameMusic, -1);
+                    }
+                } else if (buttons[i].label == "Tutorial") {
+                    currentState = TUTORIAL;
+                    // Không dừng nhạc khi vào tutorial
                 }
             }
         }
@@ -338,6 +367,9 @@ void Game::render() {
                 explosion->render();
             }
             break;
+        case TUTORIAL:
+            renderTutorial();
+            break;
     }
 
     SDL_RenderPresent(renderer);
@@ -361,6 +393,32 @@ void Game::renderMenu() {
     }
 }
 
+void Game::renderTutorial() {
+    if (menuBackgroundTexture) {
+        SDL_RenderCopy(renderer, menuBackgroundTexture, nullptr, &menuBackgroundRect);
+    }
+
+    SDL_Color textColor = {255, 255, 255, 255};
+    TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 32);
+    if (!font) {
+        cout << "Lỗi load font: " << TTF_GetError() << endl;
+        return;
+    }
+
+    string tutorialText = "Luật chơi:\n- Dùng phím WASD hoặc mũi tên để di chuyển.\n- Thu thập sao để tăng điểm.\n- Tránh đạn của enemy.\n- Đạt 40 điểm để thắng!\nNhấn ESC để quay lại.";
+    SDL_Surface* textSurface = TTF_RenderText_Blended_Wrapped(font, tutorialText.c_str(), textColor, 600);
+    SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_FreeSurface(textSurface);
+
+    int textW, textH;
+    SDL_QueryTexture(tutorialTexture, nullptr, nullptr, &textW, &textH);
+    SDL_Rect textRect = {(800 - textW) / 2, (600 - textH) / 2, textW, textH};
+    SDL_RenderCopy(renderer, tutorialTexture, nullptr, &textRect);
+
+    SDL_DestroyTexture(tutorialTexture);
+    TTF_CloseFont(font);
+}
+
 void Game::clean() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -376,6 +434,9 @@ void Game::clean() {
     }
     if (menuMusic) {
         Mix_FreeMusic(menuMusic);
+    }
+    if (gameMusic) {
+        Mix_FreeMusic(gameMusic);
     }
     Mix_Quit();
     TTF_Quit();
