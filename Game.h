@@ -30,7 +30,8 @@ private:
     enum GameState {
         MENU,
         PLAYING,
-        TUTORIAL
+        TUTORIAL,
+        SKIN_SELECTION
     };
 
     GameState currentState;
@@ -63,6 +64,15 @@ private:
     Mix_Music* menuMusic;
     Mix_Music* gameMusic;
     bool musicOn;
+
+    // Skin selection
+    int selectedSkin;
+    std::vector<Button> skinButtons;
+    SDL_Texture* currentSkinTexture;
+    SDL_Rect skinPreviewRect;
+    void initSkinSelection();
+    void handleSkinSelectionEvents(SDL_Event& event);
+    void renderSkinSelection();
 
     void initMenu();
     void handleMenuEvents(SDL_Event& event);

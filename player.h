@@ -5,9 +5,9 @@
 #include<SDL_image.h>
 #include<bits/stdc++.h>
 
-class Player{
+class Player {
 public:
-    Player(SDL_Renderer* renderer);
+    Player(SDL_Renderer* renderer, int skinNumber = 1);
     ~Player();
 
     void handleInput(const Uint8* keystates);
@@ -16,13 +16,13 @@ public:
 
     void setPosition(int x, int y);
     SDL_Rect getRect();
-    SDL_Rect getHitbox(); // Thêm hàm lấy hitbox
+    SDL_Rect getHitbox();
 
 private:
     SDL_Renderer* renderer;
     SDL_Texture* texture;
     SDL_Rect rect;
-    SDL_Rect hitbox; // Thêm hitbox
+    SDL_Rect hitbox;
     int speed;
 };
 

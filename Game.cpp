@@ -25,7 +25,7 @@ Game::Game()
       player(nullptr), score(0), stage(1), lastStarResetTime(0),
       STAR_RESET_INTERVAL(5000), lastEnemyShootTime(0), ENEMY_SHOOT_INTERVAL(1000),
       backgroundTexture(nullptr), menuBackgroundTexture(nullptr), menuMusic(nullptr),
-      gameMusic(nullptr), musicOn(true) {}
+      gameMusic(nullptr), musicOn(true), selectedSkin(1), currentSkinTexture(nullptr) {}
 
 Game::~Game() {
     clean();
@@ -66,7 +66,7 @@ bool Game::init(const char* title, int width, int height) {
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    player = new Player(renderer);
+    player = new Player(renderer, selectedSkin);
     stars.push_back(new Star(renderer));
     lastStarResetTime = SDL_GetTicks();
 
@@ -126,10 +126,10 @@ bool Game::init(const char* title, int width, int height) {
 }
 
 void Game::initMenu() {
-    vector<string> buttonLabels = {"Play", "Music On/Off", "Tutorial"};
+    vector<string> buttonLabels = {"Play", "Music", "Tutorial", "Skin"};
     int buttonWidth = 200;
     int buttonHeight = 60;
-    int startY = 200; // Bắt đầu từ trên xuống
+    int startY = 200;
     int spacing = 20;
 
     SDL_Color textColor = {255, 255, 255, 255};
@@ -156,6 +156,63 @@ void Game::initMenu() {
     TTF_CloseFont(font);
 }
 
+void Game::initSkinSelection() {
+    // Load initial skin preview
+    string imgPath = "assets/player" + to_string(selectedSkin) + ".png";
+    SDL_Surface* skinSurface = IMG_Load(imgPath.c_str());
+    if (skinSurface) {
+        currentSkinTexture = SDL_CreateTextureFromSurface(renderer, skinSurface);
+        SDL_FreeSurface(skinSurface);
+    }
+
+    skinPreviewRect.w = 40;
+    skinPreviewRect.h = 40;
+    skinPreviewRect.x = (800 - skinPreviewRect.w) / 2; // Căn giữa
+    skinPreviewRect.y = 250;
+
+    // Initialize skin selection buttons (<, >, Confirm)
+    vector<string> skinButtonLabels = {"<", ">", "Confirm"};
+    int buttonWidth = 50; // Kích thước nút < và >
+    int buttonHeight = 40;
+    int confirmButtonWidth = 140; // Tăng chiều rộng nút Confirm
+    int confirmButtonHeight = 60; // Tăng chiều cao nút Confirm
+    int startY = 300;
+    int totalButtonWidth = 2 * buttonWidth + 100; // Khoảng cách giữa < và >
+    int leftX = (800 - totalButtonWidth) / 2;
+    int rightX = leftX + buttonWidth + 100;
+
+    SDL_Color textColor = {255, 255, 255, 255};
+    TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 24);
+    if (!font) {
+        cout << "Lỗi load font: " << TTF_GetError() << endl;
+        return;
+    }
+
+    skinButtons.clear();
+    for (size_t i = 0; i < skinButtonLabels.size(); ++i) {
+        Button button;
+        if (skinButtonLabels[i] == "Confirm") {
+            button.rect.w = confirmButtonWidth;
+            button.rect.h = confirmButtonHeight;
+            button.rect.x = (800 - confirmButtonWidth) / 2;
+            button.rect.y = startY + buttonHeight + 20;
+        } else {
+            button.rect.w = buttonWidth;
+            button.rect.h = buttonHeight;
+            button.rect.x = (skinButtonLabels[i] == "<") ? leftX : rightX;
+            button.rect.y = startY;
+        }
+        button.label = skinButtonLabels[i];
+
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, button.label.c_str(), textColor);
+        button.texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_FreeSurface(textSurface);
+
+        skinButtons.push_back(button);
+    }
+    TTF_CloseFont(font);
+}
+
 void Game::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -178,6 +235,9 @@ void Game::handleEvents() {
                     currentState = MENU;
                     if (musicOn) Mix_PlayMusic(menuMusic, -1);
                 }
+                break;
+            case SKIN_SELECTION:
+                handleSkinSelectionEvents(event);
                 break;
         }
     }
@@ -212,6 +272,48 @@ void Game::handleMenuEvents(SDL_Event& event) {
                 } else if (buttons[i].label == "Tutorial") {
                     currentState = TUTORIAL;
                     // Không dừng nhạc khi vào tutorial
+                } else if (buttons[i].label == "Skin") {
+                    currentState = SKIN_SELECTION;
+                    initSkinSelection();
+                }
+            }
+        }
+    }
+}
+
+void Game::handleSkinSelectionEvents(SDL_Event& event) {
+    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+        int mouseX = event.button.x;
+        int mouseY = event.button.y;
+
+        for (size_t i = 0; i < skinButtons.size(); ++i) {
+            SDL_Rect buttonRect = skinButtons[i].rect;
+            if (mouseX >= buttonRect.x && mouseX <= buttonRect.x + buttonRect.w &&
+                mouseY >= buttonRect.y && mouseY <= buttonRect.y + buttonRect.h) {
+                if (skinButtons[i].label == "<") {
+                    selectedSkin = (selectedSkin == 1) ? 4 : selectedSkin - 1;
+                    SDL_DestroyTexture(currentSkinTexture);
+                    string imgPath = "assets/player" + to_string(selectedSkin) + ".png";
+                    SDL_Surface* skinSurface = IMG_Load(imgPath.c_str());
+                    if (skinSurface) {
+                        currentSkinTexture = SDL_CreateTextureFromSurface(renderer, skinSurface);
+                        SDL_FreeSurface(skinSurface);
+                    }
+                } else if (skinButtons[i].label == ">") {
+                    selectedSkin = (selectedSkin == 4) ? 1 : selectedSkin + 1;
+                    SDL_DestroyTexture(currentSkinTexture);
+                    string imgPath = "assets/player" + to_string(selectedSkin) + ".png";
+                    SDL_Surface* skinSurface = IMG_Load(imgPath.c_str());
+                    if (skinSurface) {
+                        currentSkinTexture = SDL_CreateTextureFromSurface(renderer, skinSurface);
+                        SDL_FreeSurface(skinSurface);
+                    }
+                } else if (skinButtons[i].label == "Confirm") {
+                    // Cập nhật skin cho player
+                    delete player;
+                    player = new Player(renderer, selectedSkin);
+                    currentState = MENU;
+                    if (musicOn) Mix_PlayMusic(menuMusic, -1);
                 }
             }
         }
@@ -242,19 +344,19 @@ void Game::update() {
             star->reset();
             lastStarResetTime = currentTime;
 
-            if (score >= 15 && stage == 1) {
+            if (score >= 4 && stage == 1) {
                 stage = 2;
                 if (!enemies.empty()) {
                     enemies[0]->flyUp();
                 }
                 enemies.push_back(new Enemy(renderer, 2));
-            } else if (score >= 30 && stage == 2) {
+            } else if (score >= 8 && stage == 2) {
                 stage = 3;
                 for (auto enemy : enemies) {
                     enemy->flyUp();
                 }
                 enemies.push_back(new Enemy(renderer, 3));
-            } else if (score >= 40 && stage == 3) {
+            } else if (score >= 14 && stage == 3) {
                 cout << "Chúc mừng! Bạn đã chiến thắng!" << endl;
                 if (!enemies.empty()) {
                     SDL_Rect enemyRect = enemies.back()->getRect();
@@ -370,6 +472,9 @@ void Game::render() {
         case TUTORIAL:
             renderTutorial();
             break;
+        case SKIN_SELECTION:
+            renderSkinSelection();
+            break;
     }
 
     SDL_RenderPresent(renderer);
@@ -419,6 +524,30 @@ void Game::renderTutorial() {
     TTF_CloseFont(font);
 }
 
+void Game::renderSkinSelection() {
+    if (menuBackgroundTexture) {
+        SDL_RenderCopy(renderer, menuBackgroundTexture, nullptr, &menuBackgroundRect);
+    }
+
+    // Hiển thị skin preview
+    if (currentSkinTexture) {
+        SDL_RenderCopy(renderer, currentSkinTexture, nullptr, &skinPreviewRect);
+    }
+
+    // Hiển thị các nút
+    for (const auto& button : skinButtons) {
+        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        SDL_RenderFillRect(renderer, &button.rect);
+        SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+        SDL_RenderDrawRect(renderer, &button.rect);
+
+        int textW, textH;
+        SDL_QueryTexture(button.texture, nullptr, nullptr, &textW, &textH);
+        SDL_Rect textRect = {button.rect.x + (button.rect.w - textW) / 2, button.rect.y + (button.rect.h - textH) / 2, textW, textH};
+        SDL_RenderCopy(renderer, button.texture, nullptr, &textRect);
+    }
+}
+
 void Game::clean() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -426,11 +555,18 @@ void Game::clean() {
         SDL_DestroyTexture(button.texture);
     }
     buttons.clear();
+    for (auto& button : skinButtons) {
+        SDL_DestroyTexture(button.texture);
+    }
+    skinButtons.clear();
     if (backgroundTexture) {
         SDL_DestroyTexture(backgroundTexture);
     }
     if (menuBackgroundTexture) {
         SDL_DestroyTexture(menuBackgroundTexture);
+    }
+    if (currentSkinTexture) {
+        SDL_DestroyTexture(currentSkinTexture);
     }
     if (menuMusic) {
         Mix_FreeMusic(menuMusic);
