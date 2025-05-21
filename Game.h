@@ -31,7 +31,8 @@ private:
         MENU,
         PLAYING,
         TUTORIAL,
-        SKIN_SELECTION
+        SKIN_SELECTION,
+        GAME_OVER // Thêm trạng thái mới
     };
 
     GameState currentState;
@@ -73,6 +74,15 @@ private:
     void initSkinSelection();
     void handleSkinSelectionEvents(SDL_Event& event);
     void renderSkinSelection();
+
+    // Game Over
+    std::vector<Button> gameOverButtons;
+    SDL_Texture* gameOverTextTexture;
+    SDL_Rect gameOverTextRect;
+    void initGameOver();
+    void handleGameOverEvents(SDL_Event& event);
+    void renderGameOver();
+    void resetGame(); // Hàm reset game
 
     void initMenu();
     void handleMenuEvents(SDL_Event& event);

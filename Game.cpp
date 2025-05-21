@@ -7,25 +7,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-Player* player = nullptr;
-vector<Star*> stars;
-vector<Enemy*> enemies;
-int score = 0;
-int stage = 1;
-
-Uint32 lastStarResetTime = 0;
-const Uint32 STAR_RESET_INTERVAL = 5000;
-
-vector<RoundBullet*> roundBullets;
-Uint32 lastEnemyShootTime = 0;
-const Uint32 ENEMY_SHOOT_INTERVAL = 1000;
-
 Game::Game()
     : currentState(MENU), window(nullptr), renderer(nullptr), isRunning(false),
       player(nullptr), score(0), stage(1), lastStarResetTime(0),
       STAR_RESET_INTERVAL(5000), lastEnemyShootTime(0), ENEMY_SHOOT_INTERVAL(1000),
       backgroundTexture(nullptr), menuBackgroundTexture(nullptr), menuMusic(nullptr),
-      gameMusic(nullptr), musicOn(true), selectedSkin(1), currentSkinTexture(nullptr) {}
+      gameMusic(nullptr), musicOn(true), selectedSkin(1), currentSkinTexture(nullptr),
+      gameOverTextTexture(nullptr) {}
 
 Game::~Game() {
     clean();
@@ -87,7 +75,6 @@ bool Game::init(const char* title, int width, int height) {
     backgroundRect.w = width;
     backgroundRect.h = height;
 
-    // Load menu background
     SDL_Surface* menuBackgroundSurface = IMG_Load("assets/menu_background.png");
     if (!menuBackgroundSurface) {
         cout << "Lỗi load menu background: " << IMG_GetError() << endl;
@@ -101,14 +88,12 @@ bool Game::init(const char* title, int width, int height) {
     menuBackgroundRect.w = width;
     menuBackgroundRect.h = height;
 
-    // Load menu music
     menuMusic = Mix_LoadMUS("assets/menu_music.mp3");
     if (!menuMusic) {
         cout << "Lỗi load menu music: " << Mix_GetError() << endl;
         return false;
     }
 
-    // Load game music
     gameMusic = Mix_LoadMUS("assets/game_music.mp3");
     if (!gameMusic) {
         cout << "Lỗi load game music: " << Mix_GetError() << endl;
@@ -120,6 +105,7 @@ bool Game::init(const char* title, int width, int height) {
     }
 
     initMenu();
+    initGameOver();
 
     isRunning = true;
     return true;
@@ -143,7 +129,7 @@ void Game::initMenu() {
         Button button;
         button.rect.w = buttonWidth;
         button.rect.h = buttonHeight;
-        button.rect.x = (800 - buttonWidth) / 2; // Căn giữa theo chiều ngang
+        button.rect.x = (800 - buttonWidth) / 2;
         button.rect.y = startY + i * (buttonHeight + spacing);
         button.label = buttonLabels[i];
 
@@ -156,8 +142,55 @@ void Game::initMenu() {
     TTF_CloseFont(font);
 }
 
+void Game::initGameOver() {
+    SDL_Color textColor = {255, 255, 255, 255};
+    TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 48);
+    if (!font) {
+        cout << "Lỗi load font: " << TTF_GetError() << endl;
+        return;
+    }
+
+    // Khởi tạo chữ "Game Over"
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Game Over", textColor);
+    gameOverTextTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_FreeSurface(textSurface);
+
+    SDL_QueryTexture(gameOverTextTexture, nullptr, nullptr, &gameOverTextRect.w, &gameOverTextRect.h);
+    gameOverTextRect.x = (800 - gameOverTextRect.w) / 2;
+    gameOverTextRect.y = 150;
+
+    // Khởi tạo các nút Game Over
+    vector<string> buttonLabels = {"Restart", "Back to Menu"};
+    int buttonWidth = 200;
+    int buttonHeight = 60;
+    int startY = 300;
+    int spacing = 20;
+
+    font = TTF_OpenFont("assets/spaceranger.ttf", 32);
+    if (!font) {
+        cout << "Lỗi load font: " << TTF_GetError() << endl;
+        return;
+    }
+
+    gameOverButtons.clear();
+    for (size_t i = 0; i < buttonLabels.size(); ++i) {
+        Button button;
+        button.rect.w = buttonWidth;
+        button.rect.h = buttonHeight;
+        button.rect.x = (800 - buttonWidth) / 2;
+        button.rect.y = startY + i * (buttonHeight + spacing);
+        button.label = buttonLabels[i];
+
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, button.label.c_str(), textColor);
+        button.texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_FreeSurface(textSurface);
+
+        gameOverButtons.push_back(button);
+    }
+    TTF_CloseFont(font);
+}
+
 void Game::initSkinSelection() {
-    // Load initial skin preview
     string imgPath = "assets/player" + to_string(selectedSkin) + ".png";
     SDL_Surface* skinSurface = IMG_Load(imgPath.c_str());
     if (skinSurface) {
@@ -167,17 +200,16 @@ void Game::initSkinSelection() {
 
     skinPreviewRect.w = 40;
     skinPreviewRect.h = 40;
-    skinPreviewRect.x = (800 - skinPreviewRect.w) / 2; // Căn giữa
+    skinPreviewRect.x = (800 - skinPreviewRect.w) / 2;
     skinPreviewRect.y = 250;
 
-    // Initialize skin selection buttons (<, >, Confirm)
     vector<string> skinButtonLabels = {"<", ">", "Confirm"};
     int buttonWidth = 50;
     int buttonHeight = 40;
     int confirmButtonWidth = 100;
     int confirmButtonHeight = 50;
     int startY = 300;
-    int totalButtonWidth = 2 * buttonWidth + 100; // Khoảng cách giữa < và >
+    int totalButtonWidth = 2 * buttonWidth + 100;
     int leftX = (800 - totalButtonWidth) / 2;
     int rightX = leftX + buttonWidth + 100;
 
@@ -213,6 +245,44 @@ void Game::initSkinSelection() {
     TTF_CloseFont(font);
 }
 
+void Game::resetGame() {
+    // Reset các biến và trạng thái game
+    score = 0;
+    stage = 1;
+    lastStarResetTime = SDL_GetTicks();
+    lastEnemyShootTime = 0;
+
+    // Xóa và reset player
+    delete player;
+    player = new Player(renderer, selectedSkin);
+
+    // Xóa và reset stars
+    for (auto star : stars) {
+        delete star;
+    }
+    stars.clear();
+    stars.push_back(new Star(renderer));
+
+    // Xóa và reset enemies
+    for (auto enemy : enemies) {
+        delete enemy;
+    }
+    enemies.clear();
+    enemies.push_back(new Enemy(renderer, 1));
+
+    // Xóa bullets
+    for (auto bullet : roundBullets) {
+        delete bullet;
+    }
+    roundBullets.clear();
+
+    // Xóa explosions
+    for (auto explosion : explosions) {
+        delete explosion;
+    }
+    explosions.clear();
+}
+
 void Game::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -235,15 +305,16 @@ void Game::handleEvents() {
             case TUTORIAL:
                 if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
                     currentState = MENU;
-                    // Không cần gọi Mix_PlayMusic vì menu_music đã đang phát
                 }
                 break;
             case SKIN_SELECTION:
                 handleSkinSelectionEvents(event);
                 break;
+            case GAME_OVER:
+                handleGameOverEvents(event);
+                break;
         }
     }
-    // Đảm bảo xử lý input liên tục khi ở trạng thái PLAYING
     if (currentState == PLAYING) {
         const Uint8* keystates = SDL_GetKeyboardState(NULL);
         player->handleInput(keystates);
@@ -270,13 +341,10 @@ void Game::handleMenuEvents(SDL_Event& event) {
                     } else {
                         if (currentState == MENU && !Mix_PlayingMusic()) {
                             Mix_PlayMusic(menuMusic, -1);
-                        } else if (currentState == PLAYING && !Mix_PlayingMusic()) {
-                            Mix_PlayMusic(gameMusic, -1);
                         }
                     }
                 } else if (buttons[i].label == "Tutorial") {
                     currentState = TUTORIAL;
-                    // Không dừng nhạc khi vào tutorial
                 } else if (buttons[i].label == "Skin") {
                     currentState = SKIN_SELECTION;
                     initSkinSelection();
@@ -314,14 +382,37 @@ void Game::handleSkinSelectionEvents(SDL_Event& event) {
                         SDL_FreeSurface(skinSurface);
                     }
                 } else if (skinButtons[i].label == "Confirm") {
-                    // Cập nhật skin cho player
                     delete player;
                     player = new Player(renderer, selectedSkin);
                     currentState = MENU;
-                    // Chỉ phát nhạc nếu không có nhạc nào đang phát
                     if (musicOn && !Mix_PlayingMusic()) {
                         Mix_PlayMusic(menuMusic, -1);
                     }
+                }
+            }
+        }
+    }
+}
+
+void Game::handleGameOverEvents(SDL_Event& event) {
+    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+        int mouseX = event.button.x;
+        int mouseY = event.button.y;
+
+        for (size_t i = 0; i < gameOverButtons.size(); ++i) {
+            SDL_Rect buttonRect = gameOverButtons[i].rect;
+            if (mouseX >= buttonRect.x && mouseX <= buttonRect.x + buttonRect.w &&
+                mouseY >= buttonRect.y && mouseY <= buttonRect.y + buttonRect.h) {
+                if (gameOverButtons[i].label == "Restart") {
+                    resetGame();
+                    currentState = PLAYING;
+                    Mix_HaltMusic();
+                    if (musicOn) Mix_PlayMusic(gameMusic, -1);
+                } else if (gameOverButtons[i].label == "Back to Menu") {
+                    resetGame();
+                    currentState = MENU;
+                    Mix_HaltMusic();
+                    if (musicOn) Mix_PlayMusic(menuMusic, -1);
                 }
             }
         }
@@ -386,11 +477,11 @@ void Game::update() {
         if (enemy->hasStoppedMoving() && currentTime - lastEnemyShootTime >= ENEMY_SHOOT_INTERVAL) {
             int shootType;
             if (stage == 3) {
-                shootType = rand() % 3; // Enemy3 bắn 3 kiểu
+                shootType = rand() % 3;
             } else if (stage == 2) {
-                shootType = rand() % 3; // Enemy2 bắn 3 kiểu
+                shootType = rand() % 3;
             } else {
-                shootType = rand() % 2; // Enemy1 bắn 2 kiểu
+                shootType = rand() % 2;
             }
             if (shootType == 0) {
                 enemy->shootSpiralBullets(roundBullets);
@@ -421,7 +512,9 @@ void Game::update() {
         SDL_Rect playerHitbox = player->getHitbox();
         if (SDL_HasIntersection(&bulletRect, &playerHitbox)) {
             cout << "Game Over! Bạn đã bị trúng đạn!" << endl;
-            isRunning = false;
+            currentState = GAME_OVER; // Chuyển sang trạng thái GAME_OVER
+            Mix_HaltMusic();
+            if (musicOn) Mix_PlayMusic(menuMusic, -1); // Phát nhạc menu
         }
     }
 
@@ -483,6 +576,9 @@ void Game::render() {
         case SKIN_SELECTION:
             renderSkinSelection();
             break;
+        case GAME_OVER:
+            renderGameOver();
+            break;
     }
 
     SDL_RenderPresent(renderer);
@@ -537,13 +633,33 @@ void Game::renderSkinSelection() {
         SDL_RenderCopy(renderer, menuBackgroundTexture, nullptr, &menuBackgroundRect);
     }
 
-    // Hiển thị skin preview
     if (currentSkinTexture) {
         SDL_RenderCopy(renderer, currentSkinTexture, nullptr, &skinPreviewRect);
     }
 
-    // Hiển thị các nút
     for (const auto& button : skinButtons) {
+        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        SDL_RenderFillRect(renderer, &button.rect);
+        SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+        SDL_RenderDrawRect(renderer, &button.rect);
+
+        int textW, textH;
+        SDL_QueryTexture(button.texture, nullptr, nullptr, &textW, &textH);
+        SDL_Rect textRect = {button.rect.x + (button.rect.w - textW) / 2, button.rect.y + (button.rect.h - textH) / 2, textW, textH};
+        SDL_RenderCopy(renderer, button.texture, nullptr, &textRect);
+    }
+}
+
+void Game::renderGameOver() {
+    if (menuBackgroundTexture) {
+        SDL_RenderCopy(renderer, menuBackgroundTexture, nullptr, &menuBackgroundRect);
+    }
+
+    if (gameOverTextTexture) {
+        SDL_RenderCopy(renderer, gameOverTextTexture, nullptr, &gameOverTextRect);
+    }
+
+    for (const auto& button : gameOverButtons) {
         SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
         SDL_RenderFillRect(renderer, &button.rect);
         SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
@@ -567,6 +683,10 @@ void Game::clean() {
         SDL_DestroyTexture(button.texture);
     }
     skinButtons.clear();
+    for (auto& button : gameOverButtons) {
+        SDL_DestroyTexture(button.texture);
+    }
+    gameOverButtons.clear();
     if (backgroundTexture) {
         SDL_DestroyTexture(backgroundTexture);
     }
@@ -575,6 +695,9 @@ void Game::clean() {
     }
     if (currentSkinTexture) {
         SDL_DestroyTexture(currentSkinTexture);
+    }
+    if (gameOverTextTexture) {
+        SDL_DestroyTexture(gameOverTextTexture);
     }
     if (menuMusic) {
         Mix_FreeMusic(menuMusic);
