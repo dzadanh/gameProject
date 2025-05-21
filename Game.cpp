@@ -104,6 +104,12 @@ bool Game::init(const char* title, int width, int height) {
         Mix_PlayMusic(menuMusic, -1);
     }
 
+    clickSound = Mix_LoadWAV("assets/click_button.wav");
+    if (!clickSound) {
+        cout << "Lỗi load click sound: " << Mix_GetError() << endl;
+        return false;
+    }
+
     initMenu();
     initGameOver();
 
@@ -330,6 +336,12 @@ void Game::handleMenuEvents(SDL_Event& event) {
             SDL_Rect buttonRect = buttons[i].rect;
             if (mouseX >= buttonRect.x && mouseX <= buttonRect.x + buttonRect.w &&
                 mouseY >= buttonRect.y && mouseY <= buttonRect.y + buttonRect.h) {
+                // Phát âm thanh click
+                if (musicOn) {
+                    Mix_PlayChannel(-1, clickSound, 0);
+                }
+
+                // Logic hiện tại
                 if (buttons[i].label == "Play") {
                     currentState = PLAYING;
                     Mix_HaltMusic();
@@ -363,6 +375,12 @@ void Game::handleSkinSelectionEvents(SDL_Event& event) {
             SDL_Rect buttonRect = skinButtons[i].rect;
             if (mouseX >= buttonRect.x && mouseX <= buttonRect.x + buttonRect.w &&
                 mouseY >= buttonRect.y && mouseY <= buttonRect.y + buttonRect.h) {
+                // Phát âm thanh click
+                if (musicOn) {
+                    Mix_PlayChannel(-1, clickSound, 0);
+                }
+
+                // Logic hiện tại
                 if (skinButtons[i].label == "<") {
                     selectedSkin = (selectedSkin == 1) ? 4 : selectedSkin - 1;
                     SDL_DestroyTexture(currentSkinTexture);
@@ -403,6 +421,12 @@ void Game::handleGameOverEvents(SDL_Event& event) {
             SDL_Rect buttonRect = gameOverButtons[i].rect;
             if (mouseX >= buttonRect.x && mouseX <= buttonRect.x + buttonRect.w &&
                 mouseY >= buttonRect.y && mouseY <= buttonRect.y + buttonRect.h) {
+                // Phát âm thanh click
+                if (musicOn) {
+                    Mix_PlayChannel(-1, clickSound, 0);
+                }
+
+                // Logic hiện tại
                 if (gameOverButtons[i].label == "Restart") {
                     resetGame();
                     currentState = PLAYING;
@@ -704,6 +728,10 @@ void Game::clean() {
     }
     if (gameMusic) {
         Mix_FreeMusic(gameMusic);
+    }
+    // Giải phóng âm thanh click
+    if (clickSound) {
+        Mix_FreeChunk(clickSound);
     }
     Mix_Quit();
     TTF_Quit();

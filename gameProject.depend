@@ -1,9 +1,9 @@
 # depslib dependency file v1.0
-1747845521 source:c:\users\admin\onedrive\desktop\gameproject\main.cpp
+1747852658 source:c:\users\admin\onedrive\desktop\gameproject\main.cpp
 	"game.h"
 	<bits/stdc++.h>
 
-1747845890 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
+1747854218 source:c:\users\admin\onedrive\desktop\gameproject\game.cpp
 	"game.h"
 	"player.h"
 	"star.h"
@@ -12,7 +12,7 @@
 	"explosion.h"
 	<bits/stdc++.h>
 
-1747851381 c:\users\admin\onedrive\desktop\gameproject\game.h
+1747854270 c:\users\admin\onedrive\desktop\gameproject\game.h
 	<SDL.h>
 	<SDL_image.h>
 	<SDL_ttf.h>

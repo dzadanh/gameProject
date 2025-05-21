@@ -46,6 +46,7 @@ private:
     std::vector<Explosion*> explosions;
     int score;
     int stage;
+    Mix_Chunk* clickSound;
     Uint32 lastStarResetTime;
     const Uint32 STAR_RESET_INTERVAL;
     Uint32 lastEnemyShootTime;
