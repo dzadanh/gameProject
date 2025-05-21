@@ -32,7 +32,8 @@ private:
         PLAYING,
         TUTORIAL,
         SKIN_SELECTION,
-        GAME_OVER // Thêm trạng thái mới
+        GAME_OVER,
+        WINNER // Thêm trạng thái mới
     };
 
     GameState currentState;
@@ -46,7 +47,6 @@ private:
     std::vector<Explosion*> explosions;
     int score;
     int stage;
-    Mix_Chunk* clickSound;
     Uint32 lastStarResetTime;
     const Uint32 STAR_RESET_INTERVAL;
     Uint32 lastEnemyShootTime;
@@ -65,6 +65,7 @@ private:
     SDL_Rect menuBackgroundRect;
     Mix_Music* menuMusic;
     Mix_Music* gameMusic;
+    Mix_Chunk* clickSound;
     bool musicOn;
 
     // Skin selection
@@ -83,12 +84,20 @@ private:
     void initGameOver();
     void handleGameOverEvents(SDL_Event& event);
     void renderGameOver();
-    void resetGame(); // Hàm reset game
+
+    // Winner
+    std::vector<Button> winnerButtons;
+    SDL_Texture* winnerTextTexture;
+    SDL_Rect winnerTextRect;
+    void initWinner();
+    void handleWinnerEvents(SDL_Event& event);
+    void renderWinner();
 
     void initMenu();
     void handleMenuEvents(SDL_Event& event);
     void renderMenu();
     void renderTutorial();
+    void resetGame();
 };
 
 #endif
