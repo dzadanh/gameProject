@@ -172,10 +172,10 @@ void Game::initSkinSelection() {
 
     // Initialize skin selection buttons (<, >, Confirm)
     vector<string> skinButtonLabels = {"<", ">", "Confirm"};
-    int buttonWidth = 50; // Kích thước nút < và >
+    int buttonWidth = 50;
     int buttonHeight = 40;
-    int confirmButtonWidth = 140; // Tăng chiều rộng nút Confirm
-    int confirmButtonHeight = 60; // Tăng chiều cao nút Confirm
+    int confirmButtonWidth = 100;
+    int confirmButtonHeight = 50;
     int startY = 300;
     int totalButtonWidth = 2 * buttonWidth + 100; // Khoảng cách giữa < và >
     int leftX = (800 - totalButtonWidth) / 2;
@@ -227,13 +227,15 @@ void Game::handleEvents() {
             case PLAYING:
                 if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
                     currentState = MENU;
-                    if (musicOn) Mix_PlayMusic(menuMusic, -1);
+                    if (musicOn && !Mix_PlayingMusic()) {
+                        Mix_PlayMusic(menuMusic, -1);
+                    }
                 }
                 break;
             case TUTORIAL:
                 if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
                     currentState = MENU;
-                    if (musicOn) Mix_PlayMusic(menuMusic, -1);
+                    // Không cần gọi Mix_PlayMusic vì menu_music đã đang phát
                 }
                 break;
             case SKIN_SELECTION:
@@ -266,8 +268,11 @@ void Game::handleMenuEvents(SDL_Event& event) {
                     if (!musicOn) {
                         Mix_HaltMusic();
                     } else {
-                        if (currentState == MENU) Mix_PlayMusic(menuMusic, -1);
-                        else if (currentState == PLAYING) Mix_PlayMusic(gameMusic, -1);
+                        if (currentState == MENU && !Mix_PlayingMusic()) {
+                            Mix_PlayMusic(menuMusic, -1);
+                        } else if (currentState == PLAYING && !Mix_PlayingMusic()) {
+                            Mix_PlayMusic(gameMusic, -1);
+                        }
                     }
                 } else if (buttons[i].label == "Tutorial") {
                     currentState = TUTORIAL;
@@ -313,7 +318,10 @@ void Game::handleSkinSelectionEvents(SDL_Event& event) {
                     delete player;
                     player = new Player(renderer, selectedSkin);
                     currentState = MENU;
-                    if (musicOn) Mix_PlayMusic(menuMusic, -1);
+                    // Chỉ phát nhạc nếu không có nhạc nào đang phát
+                    if (musicOn && !Mix_PlayingMusic()) {
+                        Mix_PlayMusic(menuMusic, -1);
+                    }
                 }
             }
         }
