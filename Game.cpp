@@ -252,7 +252,7 @@ void Game::initWinner() {
     winnerTextRect.y = 150;
 
     vector<string> buttonLabels = {"Back to Menu"};
-    int buttonWidth = 200;
+    int buttonWidth = 260;
     int buttonHeight = 60;
     int startY = 300;
 
@@ -768,7 +768,7 @@ void Game::renderTutorial() {
         return;
     }
 
-    string tutorialText = "Luật chơi:\n- Dùng phím WASD hoặc mũi tên để di chuyển.\n- Thu thập sao để tăng điểm.\n- Tránh đạn của enemy.\n- Đạt 14 điểm để thắng!\nNhấn ESC để quay lại.";
+    string tutorialText = "Game rules: Players use the arrow keys or WASD to steer their spaceship and dodge bullets fired from enemy ships and try to collect stars and win.";
     SDL_Surface* textSurface = TTF_RenderText_Blended_Wrapped(font, tutorialText.c_str(), textColor, 600);
     SDL_Texture* tutorialTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_FreeSurface(textSurface);
