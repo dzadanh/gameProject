@@ -206,7 +206,7 @@ void Game::initGameOver() {
     gameOverScoreTextRect.y = 220; // Below "Game Over"
 
     vector<string> buttonLabels = {"Restart", "Back to Menu"};
-    int buttonWidth = 200;
+    int buttonWidth = 250;
     int buttonHeight = 60;
     int startY = 300;
     int spacing = 20;
