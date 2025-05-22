@@ -74,7 +74,7 @@ void Enemy::shootRandomBullets(std::vector<RoundBullet*>& bullets) {
     float cy = rect.y + rect.h;
 
     int bulletCount = 5; // Số lượng đạn cho random
-    float speed = 1.4f + stage * 0.5f; // Tốc độ đạn cho random
+    float speed = 1.7f + stage * 0.5f; // Tốc độ đạn cho random
     float angle = (rand() % 360) * M_PI / 180.0f; // Chọn một góc ngẫu nhiên
     float spacing = 40.0f; // Khoảng cách giữa các viên đạn
 

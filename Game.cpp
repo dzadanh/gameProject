@@ -3,7 +3,6 @@
 #include "star.h"
 #include "enemy.h"
 #include "round_bullet.h"
-#include "explosion.h"
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -13,7 +12,8 @@ Game::Game()
       STAR_RESET_INTERVAL(5000), lastEnemyShootTime(0), ENEMY_SHOOT_INTERVAL(1000),
       backgroundTexture(nullptr), menuBackgroundTexture(nullptr), menuMusic(nullptr),
       gameMusic(nullptr), clickSound(nullptr), musicOn(true), selectedSkin(1),
-      currentSkinTexture(nullptr), gameOverTextTexture(nullptr), winnerTextTexture(nullptr) {}
+      currentSkinTexture(nullptr), gameOverTextTexture(nullptr), winnerTextTexture(nullptr),
+      scoreTextTexture(nullptr), gameOverScoreTextTexture(nullptr) {}
 
 Game::~Game() {
     clean();
@@ -106,13 +106,34 @@ bool Game::init(const char* title, int width, int height) {
         return false;
     }
 
+    // Initialize score text
+    TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 24);
+    if (!font) {
+        cout << "Lỗi load font: " << TTF_GetError() << endl;
+        return false;
+    }
+    SDL_Color textColor = {255, 255, 255, 255};
+    string scoreText = "Score: " + to_string(score);
+    SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
+    if (!scoreSurface) {
+        cout << "Lỗi tạo score surface: " << TTF_GetError() << endl;
+        TTF_CloseFont(font);
+        return false;
+    }
+    scoreTextTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+    SDL_FreeSurface(scoreSurface);
+    SDL_QueryTexture(scoreTextTexture, nullptr, nullptr, &scoreTextRect.w, &scoreTextRect.h);
+    scoreTextRect.x = 10;
+    scoreTextRect.y = 10;
+    TTF_CloseFont(font);
+
     if (musicOn) {
         Mix_PlayMusic(menuMusic, -1);
     }
 
     initMenu();
     initGameOver();
-    initWinner(); // Khởi tạo màn hình WINNER
+    initWinner();
 
     isRunning = true;
     return true;
@@ -165,6 +186,25 @@ void Game::initGameOver() {
     gameOverTextRect.x = (800 - gameOverTextRect.w) / 2;
     gameOverTextRect.y = 150;
 
+    // Initialize game over score text
+    font = TTF_OpenFont("assets/spaceranger.ttf", 32);
+    if (!font) {
+        cout << "Lỗi load font: " << TTF_GetError() << endl;
+        return;
+    }
+    string scoreText = "Score: " + to_string(score);
+    SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
+    if (!scoreSurface) {
+        cout << "Lỗi tạo game over score surface: " << TTF_GetError() << endl;
+        TTF_CloseFont(font);
+        return;
+    }
+    gameOverScoreTextTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+    SDL_FreeSurface(scoreSurface);
+    SDL_QueryTexture(gameOverScoreTextTexture, nullptr, nullptr, &gameOverScoreTextRect.w, &gameOverScoreTextRect.h);
+    gameOverScoreTextRect.x = (800 - gameOverScoreTextRect.w) / 2;
+    gameOverScoreTextRect.y = 220; // Below "Game Over"
+
     vector<string> buttonLabels = {"Restart", "Back to Menu"};
     int buttonWidth = 200;
     int buttonHeight = 60;
@@ -203,7 +243,6 @@ void Game::initWinner() {
         return;
     }
 
-    // Khởi tạo chữ "Winner"
     SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Winner", textColor);
     winnerTextTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_FreeSurface(textSurface);
@@ -212,7 +251,6 @@ void Game::initWinner() {
     winnerTextRect.x = (800 - winnerTextRect.w) / 2;
     winnerTextRect.y = 150;
 
-    // Khởi tạo nút "Back to Menu"
     vector<string> buttonLabels = {"Back to Menu"};
     int buttonWidth = 200;
     int buttonHeight = 60;
@@ -303,6 +341,23 @@ void Game::resetGame() {
     lastStarResetTime = SDL_GetTicks();
     lastEnemyShootTime = 0;
 
+    // Update score text to 0
+    TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 24);
+    if (font) {
+        SDL_Color textColor = {255, 255, 255, 255};
+        string scoreText = "Score: " + to_string(score);
+        SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
+        if (scoreSurface) {
+            SDL_DestroyTexture(scoreTextTexture);
+            scoreTextTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+            SDL_FreeSurface(scoreSurface);
+            SDL_QueryTexture(scoreTextTexture, nullptr, nullptr, &scoreTextRect.w, &scoreTextRect.h);
+            scoreTextRect.x = 10;
+            scoreTextRect.y = 10;
+        }
+        TTF_CloseFont(font);
+    }
+
     delete player;
     player = new Player(renderer, selectedSkin);
 
@@ -322,11 +377,6 @@ void Game::resetGame() {
         delete bullet;
     }
     roundBullets.clear();
-
-    for (auto explosion : explosions) {
-        delete explosion;
-    }
-    explosions.clear();
 }
 
 void Game::handleEvents() {
@@ -524,6 +574,23 @@ void Game::update() {
             star->reset();
             lastStarResetTime = currentTime;
 
+            // Update score text
+            TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 24);
+            if (font) {
+                SDL_Color textColor = {255, 255, 255, 255};
+                string scoreText = "Score: " + to_string(score);
+                SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
+                if (scoreSurface) {
+                    SDL_DestroyTexture(scoreTextTexture);
+                    scoreTextTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+                    SDL_FreeSurface(scoreSurface);
+                    SDL_QueryTexture(scoreTextTexture, nullptr, nullptr, &scoreTextRect.w, &scoreTextRect.h);
+                    scoreTextRect.x = 10;
+                    scoreTextRect.y = 10;
+                }
+                TTF_CloseFont(font);
+            }
+
             if (score >= 4 && stage == 1) {
                 stage = 2;
                 if (!enemies.empty()) {
@@ -538,14 +605,12 @@ void Game::update() {
                 enemies.push_back(new Enemy(renderer, 3));
             } else if (score >= 14 && stage == 3) {
                 if (!enemies.empty()) {
-                    SDL_Rect enemyRect = enemies.back()->getRect();
-                    explosions.push_back(new Explosion(renderer, enemyRect.x + enemyRect.w / 2, enemyRect.y + enemyRect.h / 2));
                     delete enemies.back();
                     enemies.pop_back();
                 }
-                currentState = WINNER; // Chuyển sang trạng thái WINNER
+                currentState = WINNER;
                 Mix_HaltMusic();
-                if (musicOn) Mix_PlayMusic(gameMusic, -1); // Phát nhạc game
+                if (musicOn) Mix_PlayMusic(gameMusic, -1);
             }
         }
 
@@ -595,6 +660,22 @@ void Game::update() {
         SDL_Rect playerHitbox = player->getHitbox();
         if (SDL_HasIntersection(&bulletRect, &playerHitbox)) {
             cout << "Game Over! Bạn đã bị trúng đạn!" << endl;
+            // Update game over score text
+            TTF_Font* font = TTF_OpenFont("assets/spaceranger.ttf", 32);
+            if (font) {
+                SDL_Color textColor = {255, 255, 255, 255};
+                string scoreText = "Score: " + to_string(score);
+                SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
+                if (scoreSurface) {
+                    SDL_DestroyTexture(gameOverScoreTextTexture);
+                    gameOverScoreTextTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+                    SDL_FreeSurface(scoreSurface);
+                    SDL_QueryTexture(gameOverScoreTextTexture, nullptr, nullptr, &gameOverScoreTextRect.w, &gameOverScoreTextRect.h);
+                    gameOverScoreTextRect.x = (800 - gameOverScoreTextRect.w) / 2;
+                    gameOverScoreTextRect.y = 220;
+                }
+                TTF_CloseFont(font);
+            }
             currentState = GAME_OVER;
             Mix_HaltMusic();
             if (musicOn) Mix_PlayMusic(menuMusic, -1);
@@ -611,20 +692,6 @@ void Game::update() {
                 return false;
             }),
         roundBullets.end());
-
-    for (auto explosion : explosions) {
-        explosion->update();
-    }
-    explosions.erase(
-        remove_if(explosions.begin(), explosions.end(),
-            [](Explosion* e) {
-                if (e->isFinished()) {
-                    delete e;
-                    return true;
-                }
-                return false;
-            }),
-        explosions.end());
 }
 
 void Game::render() {
@@ -649,8 +716,9 @@ void Game::render() {
             for (auto bullet : roundBullets) {
                 bullet->render();
             }
-            for (auto explosion : explosions) {
-                explosion->render();
+            // Render score text
+            if (scoreTextTexture) {
+                SDL_RenderCopy(renderer, scoreTextTexture, nullptr, &scoreTextRect);
             }
             break;
         case TUTORIAL:
@@ -745,6 +813,10 @@ void Game::renderGameOver() {
         SDL_RenderCopy(renderer, gameOverTextTexture, nullptr, &gameOverTextRect);
     }
 
+    if (gameOverScoreTextTexture) {
+        SDL_RenderCopy(renderer, gameOverScoreTextTexture, nullptr, &gameOverScoreTextRect);
+    }
+
     for (const auto& button : gameOverButtons) {
         SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
         SDL_RenderFillRect(renderer, &button.rect);
@@ -814,6 +886,12 @@ void Game::clean() {
     if (winnerTextTexture) {
         SDL_DestroyTexture(winnerTextTexture);
     }
+    if (scoreTextTexture) {
+        SDL_DestroyTexture(scoreTextTexture);
+    }
+    if (gameOverScoreTextTexture) {
+        SDL_DestroyTexture(gameOverScoreTextTexture);
+    }
     if (menuMusic) {
         Mix_FreeMusic(menuMusic);
     }
@@ -843,11 +921,6 @@ void Game::clean() {
         delete bullet;
     }
     roundBullets.clear();
-
-    for (auto explosion : explosions) {
-        delete explosion;
-    }
-    explosions.clear();
 
     RoundBullet::unloadTexture();
 }

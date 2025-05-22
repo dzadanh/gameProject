@@ -12,7 +12,6 @@ class Player;
 class Star;
 class Enemy;
 class RoundBullet;
-class Explosion;
 
 class Game {
 public:
@@ -33,7 +32,7 @@ private:
         TUTORIAL,
         SKIN_SELECTION,
         GAME_OVER,
-        WINNER // Thêm trạng thái mới
+        WINNER
     };
 
     GameState currentState;
@@ -44,7 +43,6 @@ private:
     std::vector<Star*> stars;
     std::vector<Enemy*> enemies;
     std::vector<RoundBullet*> roundBullets;
-    std::vector<Explosion*> explosions;
     int score;
     int stage;
     Uint32 lastStarResetTime;
@@ -53,6 +51,12 @@ private:
     const Uint32 ENEMY_SHOOT_INTERVAL;
     SDL_Texture* backgroundTexture;
     SDL_Rect backgroundRect;
+
+    // Score display
+    SDL_Texture* scoreTextTexture;
+    SDL_Rect scoreTextRect;
+    SDL_Texture* gameOverScoreTextTexture;
+    SDL_Rect gameOverScoreTextRect;
 
     // Menu
     struct Button {
